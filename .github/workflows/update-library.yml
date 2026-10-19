@@ -1,0 +1,115 @@
+
+name: Оновити каталог книжок
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Завантажити репозиторій
+        uses: actions/checkout@v4
+
+      - name: Налаштувати Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Знайти відкриті українські тексти
+        run: |
+          python - <<'PY'
+          import json
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          path = Path("catalog.json")
+          try:
+              catalog = json.loads(path.read_text(encoding="utf-8"))
+          except Exception:
+              catalog = []
+
+          if isinstance(catalog, dict):
+              books = catalog.get("books", [])
+          else:
+              books = catalog
+
+          if not isinstance(books, list):
+              books = []
+
+          existing = {
+              str(b.get("title", "")).strip().casefold()
+              for b in books if isinstance(b, dict)
+          }
+
+          queries = [
+              "Кобзар",
+              "Лісова пісня",
+              "Захар Беркут",
+              "Енеїда",
+              "Маруся",
+              "Чорна рада"
+          ]
+
+          for query in queries:
+              params = urllib.parse.urlencode({
+                  "action": "query",
+                  "list": "search",
+                  "srsearch": query,
+                  "srnamespace": 0,
+                  "format": "json"
+              })
+              url = "https://uk.wikisource.org/w/api.php?" + params
+              req = urllib.request.Request(
+                  url, headers={"User-Agent": "ChytachLibrary/1.0"}
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      data = json.load(response)
+                  for item in data.get("query", {}).get("search", []):
+                      title = item.get("title", "").strip()
+                      if not title or title.casefold() in existing:
+                          continue
+                      page_url = (
+                          "https://uk.wikisource.org/wiki/"
+                          + urllib.parse.quote(title.replace(" ", "_"))
+                      )
+                      books.append({
+                          "title": title,
+                          "author": "",
+                          "category": "Класика",
+                          "format": "online",
+                          "url": page_url,
+                          "licenseStatus": "needs_review",
+                          "source": "Українська Вікіджерела",
+                          "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+                      })
+                      existing.add(title.casefold())
+              except Exception as exc:
+                  print(f"Пошук «{query}» не вдався: {exc}")
+
+          output = {"books": books}
+          path.write_text(
+              json.dumps(output, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8"
+          )
+          print(f"Записано записів у каталозі: {len(books)}")
+          PY
+
+      - name: Зберегти оновлений каталог
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalog.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Автоматичне оновлення каталогу"
+            git push
+          else
+            echo "Нових змін немає"
+          fi
