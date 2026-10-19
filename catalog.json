@@ -1,7 +1,604 @@
 {
-  "name": "Читач — українська бібліотека",
-  "updatedAt": null,
-  "language": "uk",
-  "count": 0,
-  "books": []
+  "books": [
+    {
+      "title": "Кобзар",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9A%D0%BE%D0%B1%D0%B7%D0%B0%D1%80",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Червоний Кобзар. Збірка пісень і поезій робітничих",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%B5%D1%80%D0%B2%D0%BE%D0%BD%D0%B8%D0%B9_%D0%9A%D0%BE%D0%B1%D0%B7%D0%B0%D1%80._%D0%97%D0%B1%D1%96%D1%80%D0%BA%D0%B0_%D0%BF%D1%96%D1%81%D0%B5%D0%BD%D1%8C_%D1%96_%D0%BF%D0%BE%D0%B5%D0%B7%D1%96%D0%B9_%D1%80%D0%BE%D0%B1%D1%96%D1%82%D0%BD%D0%B8%D1%87%D0%B8%D1%85",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Кобзар (1922)/Вітре буйний",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9A%D0%BE%D0%B1%D0%B7%D0%B0%D1%80_%281922%29/%D0%92%D1%96%D1%82%D1%80%D0%B5_%D0%B1%D1%83%D0%B9%D0%BD%D0%B8%D0%B9",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Червоний Кобзар. Збірка пісень і поезій робітничих/Не потурай",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%B5%D1%80%D0%B2%D0%BE%D0%BD%D0%B8%D0%B9_%D0%9A%D0%BE%D0%B1%D0%B7%D0%B0%D1%80._%D0%97%D0%B1%D1%96%D1%80%D0%BA%D0%B0_%D0%BF%D1%96%D1%81%D0%B5%D0%BD%D1%8C_%D1%96_%D0%BF%D0%BE%D0%B5%D0%B7%D1%96%D0%B9_%D1%80%D0%BE%D0%B1%D1%96%D1%82%D0%BD%D0%B8%D1%87%D0%B8%D1%85/%D0%9D%D0%B5_%D0%BF%D0%BE%D1%82%D1%83%D1%80%D0%B0%D0%B9",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Стара Україна/1925/3-4/До історії критичного видання „Кобзаря“ Т. Шевченка",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A1%D1%82%D0%B0%D1%80%D0%B0_%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D0%B0/1925/3-4/%D0%94%D0%BE_%D1%96%D1%81%D1%82%D0%BE%D1%80%D1%96%D1%97_%D0%BA%D1%80%D0%B8%D1%82%D0%B8%D1%87%D0%BD%D0%BE%D0%B3%D0%BE_%D0%B2%D0%B8%D0%B4%D0%B0%D0%BD%D0%BD%D1%8F_%E2%80%9E%D0%9A%D0%BE%D0%B1%D0%B7%D0%B0%D1%80%D1%8F%E2%80%9C_%D0%A2._%D0%A8%D0%B5%D0%B2%D1%87%D0%B5%D0%BD%D0%BA%D0%B0",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Червоний Кобзар. Збірка пісень і поезій робітничих/На шляху поступу",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%B5%D1%80%D0%B2%D0%BE%D0%BD%D0%B8%D0%B9_%D0%9A%D0%BE%D0%B1%D0%B7%D0%B0%D1%80._%D0%97%D0%B1%D1%96%D1%80%D0%BA%D0%B0_%D0%BF%D1%96%D1%81%D0%B5%D0%BD%D1%8C_%D1%96_%D0%BF%D0%BE%D0%B5%D0%B7%D1%96%D0%B9_%D1%80%D0%BE%D0%B1%D1%96%D1%82%D0%BD%D0%B8%D1%87%D0%B8%D1%85/%D0%9D%D0%B0_%D1%88%D0%BB%D1%8F%D1%85%D1%83_%D0%BF%D0%BE%D1%81%D1%82%D1%83%D0%BF%D1%83",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Червоний Кобзар. Збірка пісень і поезій робітничих/Тюрма за волю",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%B5%D1%80%D0%B2%D0%BE%D0%BD%D0%B8%D0%B9_%D0%9A%D0%BE%D0%B1%D0%B7%D0%B0%D1%80._%D0%97%D0%B1%D1%96%D1%80%D0%BA%D0%B0_%D0%BF%D1%96%D1%81%D0%B5%D0%BD%D1%8C_%D1%96_%D0%BF%D0%BE%D0%B5%D0%B7%D1%96%D0%B9_%D1%80%D0%BE%D0%B1%D1%96%D1%82%D0%BD%D0%B8%D1%87%D0%B8%D1%85/%D0%A2%D1%8E%D1%80%D0%BC%D0%B0_%D0%B7%D0%B0_%D0%B2%D0%BE%D0%BB%D1%8E",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Червоний Кобзар. Збірка пісень і поезій робітничих/Шалїйте",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%B5%D1%80%D0%B2%D0%BE%D0%BD%D0%B8%D0%B9_%D0%9A%D0%BE%D0%B1%D0%B7%D0%B0%D1%80._%D0%97%D0%B1%D1%96%D1%80%D0%BA%D0%B0_%D0%BF%D1%96%D1%81%D0%B5%D0%BD%D1%8C_%D1%96_%D0%BF%D0%BE%D0%B5%D0%B7%D1%96%D0%B9_%D1%80%D0%BE%D0%B1%D1%96%D1%82%D0%BD%D0%B8%D1%87%D0%B8%D1%85/%D0%A8%D0%B0%D0%BB%D1%97%D0%B9%D1%82%D0%B5",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Червоний Кобзар. Збірка пісень і поезій робітничих/Марсельєза",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%B5%D1%80%D0%B2%D0%BE%D0%BD%D0%B8%D0%B9_%D0%9A%D0%BE%D0%B1%D0%B7%D0%B0%D1%80._%D0%97%D0%B1%D1%96%D1%80%D0%BA%D0%B0_%D0%BF%D1%96%D1%81%D0%B5%D0%BD%D1%8C_%D1%96_%D0%BF%D0%BE%D0%B5%D0%B7%D1%96%D0%B9_%D1%80%D0%BE%D0%B1%D1%96%D1%82%D0%BD%D0%B8%D1%87%D0%B8%D1%85/%D0%9C%D0%B0%D1%80%D1%81%D0%B5%D0%BB%D1%8C%D1%94%D0%B7%D0%B0",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Червоний Кобзар. Збірка пісень і поезій робітничих/Червоний прапор",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%B5%D1%80%D0%B2%D0%BE%D0%BD%D0%B8%D0%B9_%D0%9A%D0%BE%D0%B1%D0%B7%D0%B0%D1%80._%D0%97%D0%B1%D1%96%D1%80%D0%BA%D0%B0_%D0%BF%D1%96%D1%81%D0%B5%D0%BD%D1%8C_%D1%96_%D0%BF%D0%BE%D0%B5%D0%B7%D1%96%D0%B9_%D1%80%D0%BE%D0%B1%D1%96%D1%82%D0%BD%D0%B8%D1%87%D0%B8%D1%85/%D0%A7%D0%B5%D1%80%D0%B2%D0%BE%D0%BD%D0%B8%D0%B9_%D0%BF%D1%80%D0%B0%D0%BF%D0%BE%D1%80",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Лісова пісня",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9B%D1%96%D1%81%D0%BE%D0%B2%D0%B0_%D0%BF%D1%96%D1%81%D0%BD%D1%8F",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Доробок/Пісня (Люблю тебе)",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%94%D0%BE%D1%80%D0%BE%D0%B1%D0%BE%D0%BA/%D0%9F%D1%96%D1%81%D0%BD%D1%8F_%28%D0%9B%D1%8E%D0%B1%D0%BB%D1%8E_%D1%82%D0%B5%D0%B1%D0%B5%29",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Франко, 1956–1962)/2/Мавка",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE%2C_1956%E2%80%931962%29/2/%D0%9C%D0%B0%D0%B2%D0%BA%D0%B0",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Кубань (Лісовий)",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9A%D1%83%D0%B1%D0%B0%D0%BD%D1%8C_%28%D0%9B%D1%96%D1%81%D0%BE%D0%B2%D0%B8%D0%B9%29",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Поезії/Люблю тебе",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9F%D0%BE%D0%B5%D0%B7%D1%96%D1%97/%D0%9B%D1%8E%D0%B1%D0%BB%D1%8E_%D1%82%D0%B5%D0%B1%D0%B5",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Вибрані вірші (Йогансен)/Люблю тебе – не знаю слів",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%92%D0%B8%D0%B1%D1%80%D0%B0%D0%BD%D1%96_%D0%B2%D1%96%D1%80%D1%88%D1%96_%28%D0%99%D0%BE%D0%B3%D0%B0%D0%BD%D1%81%D0%B5%D0%BD%29/%D0%9B%D1%8E%D0%B1%D0%BB%D1%8E_%D1%82%D0%B5%D0%B1%D0%B5_%E2%80%93_%D0%BD%D0%B5_%D0%B7%D0%BD%D0%B0%D1%8E_%D1%81%D0%BB%D1%96%D0%B2",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "З поезій повстанської боротьби",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%97_%D0%BF%D0%BE%D0%B5%D0%B7%D1%96%D0%B9_%D0%BF%D0%BE%D0%B2%D1%81%D1%82%D0%B0%D0%BD%D1%81%D1%8C%D0%BA%D0%BE%D1%97_%D0%B1%D0%BE%D1%80%D0%BE%D1%82%D1%8C%D0%B1%D0%B8",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Біблія (Огієнко)/Книги Старого Заповіту/Пісня над піснями",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%91%D1%96%D0%B1%D0%BB%D1%96%D1%8F_%28%D0%9E%D0%B3%D1%96%D1%94%D0%BD%D0%BA%D0%BE%29/%D0%9A%D0%BD%D0%B8%D0%B3%D0%B8_%D0%A1%D1%82%D0%B0%D1%80%D0%BE%D0%B3%D0%BE_%D0%97%D0%B0%D0%BF%D0%BE%D0%B2%D1%96%D1%82%D1%83/%D0%9F%D1%96%D1%81%D0%BD%D1%8F_%D0%BD%D0%B0%D0%B4_%D0%BF%D1%96%D1%81%D0%BD%D1%8F%D0%BC%D0%B8",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Франко, 1956–1962)/20/Пропало",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE%2C_1956%E2%80%931962%29/20/%D0%9F%D1%80%D0%BE%D0%BF%D0%B0%D0%BB%D0%BE",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Як виникають народні пісні",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%AF%D0%BA_%D0%B2%D0%B8%D0%BD%D0%B8%D0%BA%D0%B0%D1%8E%D1%82%D1%8C_%D0%BD%D0%B0%D1%80%D0%BE%D0%B4%D0%BD%D1%96_%D0%BF%D1%96%D1%81%D0%BD%D1%96",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Захар Беркут",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%97%D0%B0%D1%85%D0%B0%D1%80_%D0%91%D0%B5%D1%80%D0%BA%D1%83%D1%82",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Франко, 1956–1962)/13/Захар Беркут",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE%2C_1956%E2%80%931962%29/13/%D0%97%D0%B0%D1%85%D0%B0%D1%80_%D0%91%D0%B5%D1%80%D0%BA%D1%83%D1%82",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Франко, 1956–1962)/13/Захар Беркут/III",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE%2C_1956%E2%80%931962%29/13/%D0%97%D0%B0%D1%85%D0%B0%D1%80_%D0%91%D0%B5%D1%80%D0%BA%D1%83%D1%82/III",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Три портрети/Іван Франко/Зелені Свята в Поручині й „Захар Беркут“",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D1%80%D0%B8_%D0%BF%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82%D0%B8/%D0%86%D0%B2%D0%B0%D0%BD_%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE/%D0%97%D0%B5%D0%BB%D0%B5%D0%BD%D1%96_%D0%A1%D0%B2%D1%8F%D1%82%D0%B0_%D0%B2_%D0%9F%D0%BE%D1%80%D1%83%D1%87%D0%B8%D0%BD%D1%96_%D0%B9_%E2%80%9E%D0%97%D0%B0%D1%85%D0%B0%D1%80_%D0%91%D0%B5%D1%80%D0%BA%D1%83%D1%82%E2%80%9C",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Франко, 1956–1962)/13/Захар Беркут/IX",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE%2C_1956%E2%80%931962%29/13/%D0%97%D0%B0%D1%85%D0%B0%D1%80_%D0%91%D0%B5%D1%80%D0%BA%D1%83%D1%82/IX",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Франко, 1956–1962)/13/Захар Беркут/VII",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE%2C_1956%E2%80%931962%29/13/%D0%97%D0%B0%D1%85%D0%B0%D1%80_%D0%91%D0%B5%D1%80%D0%BA%D1%83%D1%82/VII",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Франко, 1956–1962)/13/Захар Беркут/VI",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE%2C_1956%E2%80%931962%29/13/%D0%97%D0%B0%D1%85%D0%B0%D1%80_%D0%91%D0%B5%D1%80%D0%BA%D1%83%D1%82/VI",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Франко, 1956–1962)/13",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE%2C_1956%E2%80%931962%29/13",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Франко, 1956–1962)/13/Захар Беркут/I",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE%2C_1956%E2%80%931962%29/13/%D0%97%D0%B0%D1%85%D0%B0%D1%80_%D0%91%D0%B5%D1%80%D0%BA%D1%83%D1%82/I",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Франко, 1956–1962)/13/Захар Беркут/II",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%BE%2C_1956%E2%80%931962%29/13/%D0%97%D0%B0%D1%85%D0%B0%D1%80_%D0%91%D0%B5%D1%80%D0%BA%D1%83%D1%82/II",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Енеїда",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%95%D0%BD%D0%B5%D1%97%D0%B4%D0%B0",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Котляревський, 1922)/Том 1/Енеїда",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%9A%D0%BE%D1%82%D0%BB%D1%8F%D1%80%D0%B5%D0%B2%D1%81%D1%8C%D0%BA%D0%B8%D0%B9%2C_1922%29/%D0%A2%D0%BE%D0%BC_1/%D0%95%D0%BD%D0%B5%D1%97%D0%B4%D0%B0",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Струни/1/Енеїда",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A1%D1%82%D1%80%D1%83%D0%BD%D0%B8/1/%D0%95%D0%BD%D0%B5%D1%97%D0%B4%D0%B0",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Антологія римської поезії/Вергілій/Енеїда V, 835—871",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%90%D0%BD%D1%82%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F_%D1%80%D0%B8%D0%BC%D1%81%D1%8C%D0%BA%D0%BE%D1%97_%D0%BF%D0%BE%D0%B5%D0%B7%D1%96%D1%97/%D0%92%D0%B5%D1%80%D0%B3%D1%96%D0%BB%D1%96%D0%B9/%D0%95%D0%BD%D0%B5%D1%97%D0%B4%D0%B0_V%2C_835%E2%80%94871",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Котляревський, 1922)/Том 1",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%9A%D0%BE%D1%82%D0%BB%D1%8F%D1%80%D0%B5%D0%B2%D1%81%D1%8C%D0%BA%D0%B8%D0%B9%2C_1922%29/%D0%A2%D0%BE%D0%BC_1",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Струни/1/Іван Котляревський",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A1%D1%82%D1%80%D1%83%D0%BD%D0%B8/1/%D0%86%D0%B2%D0%B0%D0%BD_%D0%9A%D0%BE%D1%82%D0%BB%D1%8F%D1%80%D0%B5%D0%B2%D1%81%D1%8C%D0%BA%D0%B8%D0%B9",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Словарь української мови (1924)/перелицьовувати",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A1%D0%BB%D0%BE%D0%B2%D0%B0%D1%80%D1%8C_%D1%83%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D1%81%D1%8C%D0%BA%D0%BE%D1%97_%D0%BC%D0%BE%D0%B2%D0%B8_%281924%29/%D0%BF%D0%B5%D1%80%D0%B5%D0%BB%D0%B8%D1%86%D1%8C%D0%BE%D0%B2%D1%83%D0%B2%D0%B0%D1%82%D0%B8",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "20-40-ві роки в українській літературі (1922)",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/20-40-%D0%B2%D1%96_%D1%80%D0%BE%D0%BA%D0%B8_%D0%B2_%D1%83%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D1%81%D1%8C%D0%BA%D1%96%D0%B9_%D0%BB%D1%96%D1%82%D0%B5%D1%80%D0%B0%D1%82%D1%83%D1%80%D1%96_%281922%29",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Словник української мови (1937)/вомпити",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A1%D0%BB%D0%BE%D0%B2%D0%BD%D0%B8%D0%BA_%D1%83%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D1%81%D1%8C%D0%BA%D0%BE%D1%97_%D0%BC%D0%BE%D0%B2%D0%B8_%281937%29/%D0%B2%D0%BE%D0%BC%D0%BF%D0%B8%D1%82%D0%B8",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Твори (Котляревський, 1922)/Том 1/Передмова",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A2%D0%B2%D0%BE%D1%80%D0%B8_%28%D0%9A%D0%BE%D1%82%D0%BB%D1%8F%D1%80%D0%B5%D0%B2%D1%81%D1%8C%D0%BA%D0%B8%D0%B9%2C_1922%29/%D0%A2%D0%BE%D0%BC_1/%D0%9F%D0%B5%D1%80%D0%B5%D0%B4%D0%BC%D0%BE%D0%B2%D0%B0",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Маруся",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9C%D0%B0%D1%80%D1%83%D1%81%D1%8F",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Маруся Богуславка (оповідання)",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9C%D0%B0%D1%80%D1%83%D1%81%D1%8F_%D0%91%D0%BE%D0%B3%D1%83%D1%81%D0%BB%D0%B0%D0%B2%D0%BA%D0%B0_%28%D0%BE%D0%BF%D0%BE%D0%B2%D1%96%D0%B4%D0%B0%D0%BD%D0%BD%D1%8F%29",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Маруся (Гребінка)",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9C%D0%B0%D1%80%D1%83%D1%81%D1%8F_%28%D0%93%D1%80%D0%B5%D0%B1%D1%96%D0%BD%D0%BA%D0%B0%29",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Струни/1/Про Марусю Богуславку",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A1%D1%82%D1%80%D1%83%D0%BD%D0%B8/1/%D0%9F%D1%80%D0%BE_%D0%9C%D0%B0%D1%80%D1%83%D1%81%D1%8E_%D0%91%D0%BE%D0%B3%D1%83%D1%81%D0%BB%D0%B0%D0%B2%D0%BA%D1%83",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Маруся (Боровиковський)",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9C%D0%B0%D1%80%D1%83%D1%81%D1%8F_%28%D0%91%D0%BE%D1%80%D0%BE%D0%B2%D0%B8%D0%BA%D0%BE%D0%B2%D1%81%D1%8C%D0%BA%D0%B8%D0%B9%29",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Маруся Богуславка. Староруська поема",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9C%D0%B0%D1%80%D1%83%D1%81%D1%8F_%D0%91%D0%BE%D0%B3%D1%83%D1%81%D0%BB%D0%B0%D0%B2%D0%BA%D0%B0._%D0%A1%D1%82%D0%B0%D1%80%D0%BE%D1%80%D1%83%D1%81%D1%8C%D0%BA%D0%B0_%D0%BF%D0%BE%D0%B5%D0%BC%D0%B0",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Українські твори/Маруся",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D1%81%D1%8C%D0%BA%D1%96_%D1%82%D0%B2%D0%BE%D1%80%D0%B8/%D0%9C%D0%B0%D1%80%D1%83%D1%81%D1%8F",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Дума про Марусю попівну Богуславку",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%94%D1%83%D0%BC%D0%B0_%D0%BF%D1%80%D0%BE_%D0%9C%D0%B0%D1%80%D1%83%D1%81%D1%8E_%D0%BF%D0%BE%D0%BF%D1%96%D0%B2%D0%BD%D1%83_%D0%91%D0%BE%D0%B3%D1%83%D1%81%D0%BB%D0%B0%D0%B2%D0%BA%D1%83",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Маруся Богуславка (Куліш)",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%9C%D0%B0%D1%80%D1%83%D1%81%D1%8F_%D0%91%D0%BE%D0%B3%D1%83%D1%81%D0%BB%D0%B0%D0%B2%D0%BA%D0%B0_%28%D0%9A%D1%83%D0%BB%D1%96%D1%88%29",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Бігла Маруся по льоду",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%91%D1%96%D0%B3%D0%BB%D0%B0_%D0%9C%D0%B0%D1%80%D1%83%D1%81%D1%8F_%D0%BF%D0%BE_%D0%BB%D1%8C%D0%BE%D0%B4%D1%83",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Чорна рада (1943)",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%BE%D1%80%D0%BD%D0%B0_%D1%80%D0%B0%D0%B4%D0%B0_%281943%29",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Чорна рада (1943)/Вступне слово",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%BE%D1%80%D0%BD%D0%B0_%D1%80%D0%B0%D0%B4%D0%B0_%281943%29/%D0%92%D1%81%D1%82%D1%83%D0%BF%D0%BD%D0%B5_%D1%81%D0%BB%D0%BE%D0%B2%D0%BE",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Чорна рада (1943)/Пояснення",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%BE%D1%80%D0%BD%D0%B0_%D1%80%D0%B0%D0%B4%D0%B0_%281943%29/%D0%9F%D0%BE%D1%8F%D1%81%D0%BD%D0%B5%D0%BD%D0%BD%D1%8F",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Чорна рада (1943)/XVIII",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%BE%D1%80%D0%BD%D0%B0_%D1%80%D0%B0%D0%B4%D0%B0_%281943%29/XVIII",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Чорна рада (1943)/XV",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%BE%D1%80%D0%BD%D0%B0_%D1%80%D0%B0%D0%B4%D0%B0_%281943%29/XV",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Чорна рада (1943)/IV",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%BE%D1%80%D0%BD%D0%B0_%D1%80%D0%B0%D0%B4%D0%B0_%281943%29/IV",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Чорна рада (1943)/VI",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%BE%D1%80%D0%BD%D0%B0_%D1%80%D0%B0%D0%B4%D0%B0_%281943%29/VI",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Чорна рада (1943)/VII",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%BE%D1%80%D0%BD%D0%B0_%D1%80%D0%B0%D0%B4%D0%B0_%281943%29/VII",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Чорна рада (1943)/V",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%BE%D1%80%D0%BD%D0%B0_%D1%80%D0%B0%D0%B4%D0%B0_%281943%29/V",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    },
+    {
+      "title": "Чорна рада (1943)/II",
+      "author": "",
+      "category": "Класика",
+      "format": "online",
+      "url": "https://uk.wikisource.org/wiki/%D0%A7%D0%BE%D1%80%D0%BD%D0%B0_%D1%80%D0%B0%D0%B4%D0%B0_%281943%29/II",
+      "licenseStatus": "needs_review",
+      "source": "Українська Вікіджерела",
+      "description": "Знайдений текст. Перевірте повноту та права перед публікацією."
+    }
+  ]
 }
