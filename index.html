@@ -397,7 +397,7 @@ function renderStats(){
   $('chart').innerHTML = days.map(x => `<div><i style="height:${(S.days[x[0]]||0)/max*88}px"></i>${x[1]}</div>`).join('');
 }
 
-/* ЗАВАНТАЖЕННЯ КАТАЛОГУ З СЕРВЕРА (catalog.json) */
+/* ЗАВАНТАЖЕННЯ КАТАЛОГУ З СЕРВЕРА (catalog.json) ТА ПАРСИНГ ФОРМАТІВ */
 let CAT = [];
 async function loadCatalog(){
   try {
@@ -418,7 +418,7 @@ function renderShop(){
   
   const box = $('cat');
   if(!list.length){
-    box.innerHTML = '<p class="muted" style="padding:10px">Каталог порожній або оновлюється на сервере...</p>';
+    box.innerHTML = '<p class="muted" style="padding:10px">Каталог порожній або оновлюється на сервері...</p>';
     return;
   }
   
@@ -440,17 +440,33 @@ $('shop').onclick = async e => {
   
   toast('Завантажую книгу...');
   try {
-    // Якщо у каталозі є посилання на файл книги (текст або повний файл)
-    const res = await fetch(item.url || item.file);
-    const text = await res.text();
-    const bk = await addParsed(item.title, txtBlocks(text));
-    if(bk){
-      toast('Книгу додано!');
-      openBook(bk.id);
-      go('read');
+    const targetUrl = item.url || item.file;
+    const res = await fetch(targetUrl);
+    const blob = await res.blob();
+    
+    // Визначаємо формат файлу
+    let ext = '.txt';
+    const lowerUrl = targetUrl.toLowerCase();
+    if(lowerUrl.includes('.epub') || lowerUrl.includes('epub')) ext = '.epub';
+    else if(lowerUrl.includes('.pdf') || lowerUrl.includes('pdf')) ext = '.pdf';
+    else if(lowerUrl.includes('.fb2') || lowerUrl.includes('fb2')) ext = '.fb2';
+    
+    const file = new File([blob], item.title + ext);
+    const parsed = await readBook(file);
+    
+    if(parsed){
+      const book = await addParsed(parsed.title || item.title, parsed.blocks);
+      if(book){
+        toast('Книгу успішно додано!');
+        openBook(book.id);
+        go('read');
+        if(parsed.pageMode) setMode('page');
+      }
+    } else {
+      toast('Не вдалося розпізнати формат книги');
     }
   } catch(err) {
-    toast('Не вдалося завантажити книгу');
+    toast('Помилка завантаження файлу');
   }
 };
 
