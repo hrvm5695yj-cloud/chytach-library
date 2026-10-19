@@ -1,2086 +1,571 @@
 <!DOCTYPE html>
-<html lang="uk" data-theme="beige">
+<html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Читач</title>
-    <!-- Google Fonts: Literata 400/600 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap" rel="stylesheet">
-    
-    <!-- Exact CDN versions required -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
-
-    <style>
-        :root {
-            --s: 1;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-        }
-
-        :root[data-theme="beige"] {
-            --bg: #eadfc8;
-            --fg: #3a3226;
-            --mute: #85796a;
-            --line: #d3c6ab;
-            --anchor: #b8262e;
-            --panel: #e0d3b8;
-        }
-
-        :root[data-theme="dark"] {
-            --bg: #1d2127;
-            --fg: #d8d5ca;
-            --mute: #8b9097;
-            --line: #343a42;
-            --anchor: #ef4a52;
-            --panel: #262b32;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--fg);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-
-        button, input, select, textarea {
-            font: inherit;
-            color: inherit;
-        }
-
-        /* Layout & Navigation */
-        #app {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            width: 100%;
-        }
-
-        nav#nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: var(--panel);
-            border-top: 1px solid var(--line);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .nav-item {
-            background: none;
-            border: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            height: 100%;
-            cursor: pointer;
-            color: var(--mute);
-            font-size: 12px;
-        }
-
-        .nav-item svg {
-            width: 22px;
-            height: 22px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 1.8;
-            margin-bottom: 3px;
-        }
-
-        .nav-item.active {
-            color: var(--anchor);
-            font-weight: 600;
-        }
-
-        main {
-            flex: 1;
-            padding-bottom: 70px;
-            display: none;
-            flex-direction: column;
-            max-width: 100%;
-        }
-
-        main.active {
-            display: flex;
-        }
-
-        /* Desktop Sidebar Layout (>=800px) */
-        @media (min-width: 800px) {
-            body {
-                flex-direction: row-reverse;
-            }
-            #app {
-                flex-direction: row-reverse;
-            }
-            nav#nav-bar {
-                position: static;
-                width: 210px;
-                height: 100vh;
-                flex-direction: column;
-                justify-content: flex-start;
-                align-items: stretch;
-                border-top: none;
-                border-left: 1px solid var(--line);
-                padding: 20px 0;
-                flex-shrink: 0;
-            }
-            .nav-brand {
-                font-family: 'Literata', serif;
-                font-size: 22px;
-                font-weight: 600;
-                padding: 0 20px 20px 20px;
-                border-bottom: 1px solid var(--line);
-                margin-bottom: 10px;
-                color: var(--fg);
-            }
-            .nav-item {
-                flex-direction: row;
-                justify-content: flex-start;
-                padding: 12px 20px;
-                flex: unset;
-                height: auto;
-                font-size: 15px;
-                gap: 12px;
-            }
-            .nav-item.active {
-                background: var(--panel);
-                border-left: 4px solid var(--anchor);
-            }
-            .nav-item svg {
-                margin-bottom: 0;
-            }
-            main {
-                flex: 1;
-                padding-bottom: 0;
-                height: 100vh;
-                overflow-y: auto;
-            }
-        }
-
-        /* UI Components */
-        .btn {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            min-height: 44px;
-            padding: 0 16px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 500;
-        }
-        .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-            outline: 2px solid var(--anchor);
-            outline-offset: 2px;
-        }
-        .btn-primary {
-            background: var(--anchor);
-            color: #fff;
-            border-color: var(--anchor);
-        }
-
-        /* Sections */
-        .section-content {
-            padding: 20px;
-            max-width: 800px;
-            width: 100%;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* 1. Читати (Read Section) */
-        #sec-read {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 15px;
-            max-width: 900px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        .read-header {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .read-title {
-            font-family: 'Literata', serif;
-            font-weight: 600;
-            font-size: 18px;
-        }
-        .read-time {
-            font-size: 13px;
-            color: var(--mute);
-        }
-        .read-mode-switch {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 6px;
-        }
-        .chip {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            padding: 4px 12px;
-            border-radius: 16px;
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .chip[aria-pressed="true"] {
-            border-color: var(--anchor);
-            color: var(--anchor);
-            font-weight: 600;
-        }
-
-        /* Scene */
-        .read-scene {
-            position: relative;
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 220px;
-            cursor: pointer;
-            user-select: none;
-        }
-        .word-grid {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            width: 100%;
-            font-family: 'Literata', Georgia, serif;
-            font-size: calc(clamp(34px, 10vw, 64px) * var(--s));
-            white-space: pre;
-            line-height: 1;
-        }
-        .word-left { text-align: right; }
-        .word-anchor { color: var(--anchor); font-weight: 600; text-align: center; }
-        .word-right { text-align: left; }
-
-        .guide-line {
-            position: absolute;
-            left: 10%;
-            right: 10%;
-            height: 1px;
-            background: var(--line);
-        }
-        .guide-top { top: calc(50% - 56px); }
-        .guide-bottom { top: calc(50% + 38px); }
-
-        .tap-hint {
-            position: absolute;
-            bottom: 10px;
-            font-size: 13px;
-            color: var(--mute);
-            pointer-events: none;
-        }
-
-        .image-container {
-            max-width: 92%;
-            max-height: 72vh;
-            background: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .image-container img {
-            max-width: 100%;
-            max-height: 65vh;
-            object-fit: contain;
-        }
-
-        /* Read Footer controls */
-        .read-footer {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding-bottom: 10px;
-        }
-        .progress-bar-container {
-            width: 100%;
-            height: 4px;
-            background: var(--line);
-            border-radius: 2px;
-            cursor: pointer;
-            position: relative;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--anchor);
-            width: 0%;
-            border-radius: 2px;
-        }
-        .read-info-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            color: var(--mute);
-        }
-        .read-controls-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .btn-main-ctrl {
-            min-width: 92px;
-            font-weight: 600;
-        }
-        .wpm-range {
-            width: 100px;
-        }
-
-        /* 2. Page Mode */
-        #sec-page-mode {
-            display: none;
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 15px;
-            font-family: 'Literata', Georgia, serif;
-            font-size: calc(18px * var(--s));
-            line-height: 1.65;
-        }
-        .page-content-wrapper {
-            max-width: 680px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1em;
-        }
-        .page-content-wrapper p {
-            text-indent: 1em;
-            margin: 0;
-        }
-        .page-content-wrapper img {
-            background: #fff;
-            max-width: 100%;
-            border-radius: 6px;
-            display: block;
-            margin: 10px auto;
-        }
-        .page-load-btn {
-            align-self: center;
-            margin-bottom: 15px;
-        }
-
-        /* 3. Книжки (Books Section) */
-        .books-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .books-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .book-card {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            cursor: pointer;
-            position: relative;
-        }
-        .book-card-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .book-title {
-            font-family: 'Literata', serif;
-            font-weight: 600;
-            font-size: 16px;
-        }
-        .book-delete {
-            background: none;
-            border: none;
-            color: var(--mute);
-            cursor: pointer;
-            font-size: 18px;
-            padding: 0 6px;
-        }
-        .book-delete:hover {
-            color: var(--anchor);
-        }
-        .book-meta {
-            font-size: 13px;
-            color: var(--mute);
-        }
-        .book-prog {
-            width: 100%;
-            height: 4px;
-            background: var(--line);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        .book-prog-fill {
-            height: 100%;
-            background: var(--anchor);
-        }
-
-        /* Modal Dialog */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-        .modal-overlay.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .modal {
-            background: var(--bg);
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            padding: 24px;
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .modal input, .modal textarea {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 10px;
-            width: 100%;
-        }
-        .modal textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        /* Toast notifications */
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 2000;
-            pointer-events: none;
-        }
-        .toast {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            color: var(--fg);
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            font-size: 14px;
-            animation: fadeInOut 3s forwards;
-        }
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(-10px); }
-            10% { opacity: 1; transform: translateY(0); }
-            90% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-10px); }
-        }
-
-        /* 4. Магазин (Shop Section) */
-        .shop-search-box {
-            display: flex;
-            gap: 8px;
-        }
-        .shop-search-box input {
-            flex: 1;
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            padding: 0 14px;
-            height: 44px;
-        }
-        .shop-chips {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-        }
-        .catalog-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 16px;
-        }
-        .catalog-card {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            justify-content: space-between;
-        }
-        .catalog-card h3 {
-            font-family: 'Literata', serif;
-            font-size: 16px;
-        }
-        .catalog-card p {
-            font-size: 13px;
-            color: var(--mute);
-        }
-
-        /* 5. Прогрес (Progress Section) */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-        .stat-card {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .stat-card .val {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--anchor);
-            font-family: 'Literata', serif;
-        }
-        .stat-card .lbl {
-            font-size: 13px;
-            color: var(--mute);
-        }
-        .chart-container {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .chart-bars {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            height: 140px;
-            padding-top: 20px;
-            gap: 8px;
-        }
-        .chart-bar-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            height: 100%;
-            justify-content: flex-end;
-        }
-        .chart-bar {
-            width: 100%;
-            max-width: 32px;
-            background: var(--anchor);
-            border-radius: 4px 4px 0 0;
-            min-height: 2px;
-            transition: height 0.3s;
-        }
-        .chart-lbl {
-            font-size: 11px;
-            color: var(--mute);
-        }
-
-        /* 6. Опції (Options Section) */
-        .option-group {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .option-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .option-row label {
-            font-size: 15px;
-        }
-        .option-row select, .option-row input[type="range"] {
-            background: var(--bg);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 6px 10px;
-        }
-        .option-row input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: var(--anchor);
-        }
-
-        /* Empty states */
-        .empty-state {
-            text-align: center;
-            color: var(--mute);
-            padding: 40px 20px;
-            font-size: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Читач</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:wght@400;600&display=swap">
+<style>
+:root{--bg:#eadfc8;--fg:#3a3226;--mute:#85796a;--line:#d3c6ab;--anchor:#b8262e;--panel:#e0d3b8;--s:1;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1d2127;--fg:#d8d5ca;--mute:#8b9097;--line:#343a42;--anchor:#ef4a52;--panel:#262b32}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+.app{flex:1;min-height:0;display:flex;flex-direction:column}
+section{flex:1;min-height:0;display:flex;flex-direction:column}
+button,label.btn{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;min-height:44px}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--anchor);outline-offset:2px}
+h2{font:600 22px Literata,Georgia,serif;margin:0}
+.pad{padding:16px;overflow:auto;max-width:640px;width:100%;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:16px}
+.muted{color:var(--mute);font-size:14px}
+/* nav */
+nav{display:flex;border-top:1px solid var(--line);background:var(--bg)}
+nav .brand{display:none}
+nav button{flex:1;background:none;border:0;border-radius:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--mute);padding:8px 4px}
+nav button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button[aria-current=true]{color:var(--anchor);font-weight:600}
+@media (min-width:800px){
+ body{flex-direction:row-reverse}
+ nav{flex-direction:column;width:210px;border-top:0;border-right:1px solid var(--line);padding:20px 10px;gap:4px;justify-content:flex-start}
+ nav .brand{display:block;font:600 22px Literata,Georgia,serif;padding:0 12px 18px}
+ nav button{flex:none;flex-direction:row;gap:12px;font-size:16px;justify-content:flex-start;padding:10px 12px;border-radius:10px}
+ nav button[aria-current=true]{background:var(--panel)}
+}
+/* reader */
+#read .head{padding:12px 16px;text-align:center}
+#read .head b{display:block;font-weight:600}
+main{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;cursor:pointer;position:relative}
+.word{display:grid;grid-template-columns:1fr auto 1fr;width:100%;font-family:Literata,Georgia,serif;font-size:calc(clamp(34px,10vw,64px)*var(--s));line-height:1;white-space:pre}
+.word .l{text-align:right}.word .c{color:var(--anchor);font-weight:600}
+.guide{position:absolute;left:50%;width:1px;height:18px;background:var(--line)}
+.guide.t{top:calc(50% - 56px)}.guide.b{top:calc(50% + 38px)}
+.hint{position:absolute;bottom:10px}
+.foot{padding:8px 16px 16px;max-width:640px;width:100%;margin:0 auto}
+.bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;width:0;background:var(--anchor)}
+.meta{display:flex;justify-content:space-between;margin-bottom:12px}
+.ctl{display:flex;align-items:center;gap:8px}
+.ctl input[type=range],.set input[type=range]{flex:1;accent-color:var(--anchor)}
+#play{min-width:92px;font-weight:600}
+/* books */
+.book{display:block;width:100%;text-align:left;margin-bottom:10px;padding:14px}
+.book .t{display:flex;justify-content:space-between;gap:8px;font-weight:600}
+.book .bar{margin:10px 0 4px}
+.book .x{background:none;border:0;padding:0 4px;min-height:0;color:var(--mute)}
+/* stats */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card b{display:block;font:600 26px Literata,Georgia,serif}
+.chart{display:flex;align-items:flex-end;gap:8px;height:120px}
+.chart div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px;font-size:12px;color:var(--mute)}
+.chart i{display:block;width:100%;background:var(--anchor);border-radius:4px 4px 0 0;min-height:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.chips button{padding:6px 12px;min-height:36px;border-radius:18px}.chips button[aria-pressed=true]{border-color:var(--anchor);color:var(--anchor);font-weight:600}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.item b{display:block}.item button{white-space:nowrap}
+h3{font:600 16px system-ui,sans-serif;margin:18px 0 4px}
+#pic{max-width:92%;max-height:72%;object-fit:contain;border-radius:8px;background:#fff}
+#page{display:none;flex:1;overflow:auto;position:relative;padding:16px;max-width:680px;width:100%;margin:0 auto;font:calc(18px*var(--s))/1.65 Literata,Georgia,serif}
+#page p{margin:0 0 1em}#page img{max-width:100%;display:block;margin:12px auto;background:#fff;border-radius:6px}#page>button{display:block;margin:0 auto 14px}
+#read.pg #page{display:block}#read.pg main,#read.pg .ctl{display:none}
+/* settings */
+.set{display:flex;flex-direction:column;gap:18px}
+.set .r{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.seg{display:flex;gap:6px}.seg button[aria-pressed=true]{border-color:var(--anchor);font-weight:600}
+dialog{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;width:min(92vw,560px);padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+input[type=text],textarea{width:100%;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;font:15px system-ui,sans-serif;margin-bottom:10px}
+textarea{height:34vh;resize:vertical}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:9999}
+</style>
 </head>
 <body>
+<div class="app">
 
-    <div id="app">
-        <!-- Navigation Bar -->
-        <nav id="nav-bar">
-            <div class="nav-brand">Читач</div>
-            <button class="nav-item active" data-target="sec-read">
-                <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                Читати
-            </button>
-            <button class="nav-item" data-target="sec-books">
-                <svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h12M6 10h12"/></svg>
-                Книжки
-            </button>
-            <button class="nav-item" data-target="sec-shop">
-                <svg viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                Магазин
-            </button>
-            <button class="nav-item" data-target="sec-prog">
-                <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-                Прогрес
-            </button>
-            <button class="nav-item" data-target="sec-opts">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                Опції
-            </button>
-        </nav>
-
-        <!-- Sections Wrapper -->
-        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-            
-            <!-- 1. Читати -->
-            <main id="sec-read" class="active">
-                <div class="read-header">
-                    <div class="read-title" id="read-book-title">Немає обраної книжки</div>
-                    <div class="read-time" id="read-time-left">менше хвилини до кінця</div>
-                    <div class="read-mode-switch">
-                        <button class="chip" id="chip-rsvp" aria-pressed="true" onclick="setMode('rsvp')">Швидко</button>
-                        <button class="chip" id="chip-page" aria-pressed="false" onclick="setMode('page')">Сторінка</button>
-                    </div>
-                </div>
-
-                <div class="read-scene" id="read-scene" onclick="togglePlay()">
-                    <div class="guide-line guide-top"></div>
-                    <div class="guide-line guide-bottom"></div>
-                    <div class="word-grid" id="word-grid-el">
-                        <span class="word-left" id="w-left"></span>
-                        <span class="word-anchor" id="w-anchor">Торкніться</span>
-                        <span class="word-right" id="w-right">екрана</span>
-                    </div>
-                    <div class="tap-hint" id="tap-hint">Торкніться екрана, щоб почати</div>
-                </div>
-
-                <!-- Page Mode container replacing scene if active -->
-                <div id="sec-page-mode">
-                    <button class="btn page-load-btn" id="page-btn-earlier" onclick="loadEarlierParagraphs()">Раніше</button>
-                    <div class="page-content-wrapper" id="page-content-wrapper"></div>
-                </div>
-
-                <div class="read-footer">
-                    <div class="progress-bar-container" id="prog-bar-container" onclick="seekProgress(event)">
-                        <div class="progress-bar-fill" id="prog-bar-fill"></div>
-                    </div>
-                    <div class="read-info-row">
-                        <span id="read-progress-fraction">0 / 0</span>
-                        <span id="read-wpm-label">300 сл/хв</span>
-                    </div>
-                    <div class="read-controls-row">
-                        <button class="btn" onclick="stepWord(-10)">−10</button>
-                        <button class="btn btn-primary btn-main-ctrl" id="btn-play-pause" onclick="togglePlay()">Старт</button>
-                        <button class="btn" onclick="stepWord(10)">+10</button>
-                        <input type="range" class="wpm-range" id="wpm-range" min="100" max="900" step="25" value="300" oninput="changeWpm(this.value)">
-                    </div>
-                </div>
-            </main>
-
-            <!-- 2. Книжки -->
-            <main id="sec-books">
-                <div class="section-content">
-                    <div class="books-header">
-                        <h2>Мої книжки</h2>
-                        <button class="btn btn-primary" onclick="openAddBookModal()">Додати</button>
-                    </div>
-                    <div class="books-list" id="books-list-container"></div>
-                </div>
-            </main>
-
-            <!-- 3. Магазин -->
-            <main id="sec-shop">
-                <div class="section-content">
-                    <h2>Магазин</h2>
-                    <div class="shop-search-box">
-                        <input type="text" id="shop-search-input" placeholder="Пошук за назвою чи автором..." oninput="filterShop()" onkeydown="if(event.key==='Enter') searchInternet()">
-                        <button class="btn btn-primary" onclick="searchInternet()">Шукати в інтернеті</button>
-                    </div>
-                    <div class="shop-chips" id="shop-chips-container">
-                        <button class="chip" aria-pressed="true" onclick="setShopFilter('all', this)">Усе</button>
-                        <button class="chip" aria-pressed="false" onclick="setShopFilter('school', this)">Шкільна програма</button>
-                        <button class="chip" aria-pressed="false" onclick="setShopFilter('free', this)">Безкоштовні</button>
-                        <button class="chip" aria-pressed="false" onclick="setShopFilter('paid', this)">Платні</button>
-                    </div>
-                    <div id="school-sub-chips" style="display:none;" class="shop-chips">
-                        <button class="chip" aria-pressed="true" onclick="setSchoolClass('all', this)">Усі класи</button>
-                        <button class="chip" aria-pressed="false" onclick="setSchoolClass('8', this)">8 клас</button>
-                        <button class="chip" aria-pressed="false" onclick="setSchoolClass('9', this)">9 клас</button>
-                        <button class="chip" aria-pressed="false" onclick="setSchoolClass('10', this)">10 клас</button>
-                        <button class="chip" aria-pressed="false" onclick="setSchoolClass('11', this)">11 клас</button>
-                    </div>
-
-                    <div id="internet-results-section" style="display:none; flex-direction: column; gap: 12px;">
-                        <h3>Результати з Інтернету</h3>
-                        <div id="internet-results-container" class="catalog-grid"></div>
-                    </div>
-
-                    <div id="recommendations-section">
-                        <h3>Вам може сподобатись</h3>
-                        <div class="catalog-grid" id="recommendations-container"></div>
-                    </div>
-
-                    <h3>Каталог</h3>
-                    <div class="catalog-grid" id="catalog-container"></div>
-                    <div style="font-size: 12px; color: var(--mute); text-align: center; margin-top: 10px;">Примітка: Магазин є демо-версією. Платну частину пізніше додає власник.</div>
-                </div>
-            </main>
-
-            <!-- 4. Прогрес -->
-            <main id="sec-prog">
-                <div class="section-content">
-                    <h2>Прогрес</h2>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <span class="val" id="stat-today">0</span>
-                            <span class="lbl">Сьогодні (слів)</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="val" id="stat-total">0</span>
-                            <span class="lbl">Усього слів</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="val" id="stat-streak">0</span>
-                            <span class="lbl">Серія днів</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="val" id="stat-completed">0</span>
-                            <span class="lbl">Дочитано книжек</span>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <h3>Слів за останні 7 днів</h3>
-                        <div class="chart-bars" id="chart-bars-container"></div>
-                    </div>
-                </div>
-            </main>
-
-            <!-- 5. Опції -->
-            <main id="sec-opts">
-                <div class="section-content">
-                    <h2>Опції</h2>
-                    <div class="option-group">
-                        <div class="option-row">
-                            <label>Тема</label>
-                            <select id="opt-theme" onchange="changeTheme(this.value)">
-                                <option value="beige">Бежева</option>
-                                <option value="dark">Темна</option>
-                            </select>
-                        </div>
-                        <div class="option-row">
-                            <label>Розмір слова</label>
-                            <input type="range" min="70" max="140" step="10" value="100" id="opt-size" oninput="changeSize(this.value)">
-                        </div>
-                        <div class="option-row">
-                            <label>Довші паузи після розділових знаків</label>
-                            <input type="checkbox" id="opt-long-pauses" onchange="state.longPauses = this.checked; saveState();">
-                        </div>
-                        <div class="option-row">
-                            <label>PDF як картинки сторінок</label>
-                            <input type="checkbox" id="opt-pdf-img" onchange="state.pdfImg = this.checked; saveState();">
-                        </div>
-                        <button class="btn" style="border-color: var(--anchor); color: var(--anchor);" onclick="clearAllData()">Стерти всі дані</button>
-                    </div>
-                </div>
-            </main>
-
-        </div>
+<section id="read">
+  <div class="head"><b id="title">Читач</b><span class="muted" id="left"></span><div class="chips" style="justify-content:center;margin:8px 0 0"><button data-m="rsvp">Швидко</button><button data-m="page">Сторінка</button></div></div>
+  <main id="stage">
+    <div class="guide t"></div><div class="guide b"></div>
+    <div class="word" id="word"><span class="l"></span><span class="c">Т</span><span class="r">ак</span></div>
+    <div class="hint muted" id="hint">Торкніться екрана, щоб почати</div>
+    <img id="pic" alt="" hidden>
+  </main>
+  <div id="page"></div>
+  <div class="foot">
+    <div class="bar"><i id="fill"></i></div>
+    <div class="meta muted"><span id="pos"></span><span id="wpmv"></span></div>
+    <div class="ctl">
+      <button id="back" aria-label="Назад на 10 слів">−10</button>
+      <button id="play">Старт</button>
+      <button id="fwd" aria-label="Вперед на 10 слів">+10</button>
+      <input id="wpm" type="range" min="100" max="900" step="25" aria-label="Швидкість">
     </div>
+  </div>
+</section>
 
-    <!-- Modal Add Book -->
-    <div class="modal-overlay" id="modal-add-book">
-        <div class="modal">
-            <h3>Додати книжку</h3>
-            <input type="text" id="add-book-title" placeholder="Назва книжки">
-            <textarea id="add-book-text" placeholder="Вставте текст сюди..."></textarea>
-            <div>
-                <label style="font-size: 13px; color: var(--mute); display: block; margin-bottom: 4px;">Або завантажте файли (.txt, .fb2, .epub, .pdf, .zip):</label>
-                <input type="file" id="add-book-files" multiple accept=".txt,.fb2,.epub,.pdf,.zip">
-            </div>
-            <div class="modal-buttons">
-                <button class="btn" onclick="closeAddBookModal()">Скасувати</button>
-                <button class="btn btn-primary" onclick="confirmAddBook()">Додати</button>
-            </div>
-        </div>
-    </div>
+<section id="lib" hidden><div class="pad">
+  <div class="top"><h2>Мої книжки</h2><button id="add">Додати</button></div>
+  <div id="books"></div>
+</div></section>
 
-    <!-- Toast Container -->
-    <div id="toast-container"></div>
+<section id="stat" hidden><div class="pad">
+  <div class="top"><h2>Прогрес</h2></div>
+  <div class="grid" id="cards"></div>
+  <div class="muted" style="margin-bottom:8px">Слів за останні 7 днів</div>
+  <div class="chart" id="chart"></div>
+</div></section>
 
-    <script>
-        /* --- Application State & Database --- */
-        let state = {
-            books: [],
-            cur: null,
-            wpm: 300,
-            size: 100,
-            theme: 'beige',
-            pause: true,
-            days: {},
-            mode: 'rsvp',
-            pdfImg: true,
-            longPauses: true
-        };
+<section id="shop" hidden><div class="pad">
+  <div class="top"><h2>Автопошук книг в інтернеті</h2></div>
+  <input id="q" type="text" placeholder="Наприклад: НМТ математика, Буквар, Казки..." style="margin:0">
+  <button id="web" style="margin:10px 0 0; width:100%; font-weight:600">Знайти і завантажити у бібліотеку</button>
+  <div id="webres"></div>
+  <div class="chips" id="chips" style="margin-top:16px"></div>
+  <div class="chips" id="grades" hidden></div>
+  <div id="recs"></div>
+  <h3 id="rh">Каталог</h3>
+  <div id="cat"></div>
+  <p class="muted" style="margin-top:14px">Введіть тему чи назву — застосунок сам знайде книгу в архівах, завантажить її у фоні та додасть до ваших книжок.</p>
+</div></section>
 
-        let currentBookData = { text: '', par: [], im: {} };
-        let playTimer = null;
-        let lastSessionWordsRead = 0;
-        let lastSaveTime = Date.now();
+<section id="opt" hidden><div class="pad set">
+  <div class="top"><h2>Налаштування</h2></div>
+  <div class="r"><span>Тема</span><div class="seg"><button data-th="beige">Бежева</button><button data-th="dark">Темна</button></div></div>
+  <div class="r"><span>Розмір слова</span><input id="size" type="range" min="70" max="140" step="10"></div>
+  <div class="r"><span>Довші паузи після розділових знаків</span><input id="pause" type="checkbox" style="width:22px;height:22px;accent-color:var(--anchor)"></div>
+  <div class="r"><span>PDF як картинки сторінок (формули, малюнки)</span><input id="pdfimg" type="checkbox" style="width:22px;height:22px;accent-color:var(--anchor)"></div>
+  <button id="wipe">Стерти всі дані</button>
+</div></section>
 
-        // IndexedDB setup
-        let db = null;
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('reader', 1);
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    db = request.result;
-                    resolve(db);
-                };
-                request.onupgradeneeded = (e) => {
-                    const database = e.target.result;
-                    if (!database.objectStoreNames.contains('kv')) {
-                        database.createObjectStore('kv');
-                    }
-                };
-            });
+</div>
+
+<nav id="nav" aria-label="Розділи">
+  <div class="brand">Читач</div>
+  <button data-v="read"><svg viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg><span>Читати</span></button>
+  <button data-v="lib"><svg viewBox="0 0 24 24"><path d="M4 3v18M9 3v18M14.5 5.5l5 15"/></svg><span>Книжки</span></button>
+  <button data-v="shop"><svg viewBox="0 0 24 24"><path d="M4 8h16l-1.5 12h-13zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Магазин</span></button>
+  <button data-v="stat"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Прогрес</span></button>
+  <button data-v="opt"><svg viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/></svg><span>Опції</span></button>
+</nav>
+
+<dialog id="dlg">
+  <input id="ttl" type="text" placeholder="Назва книжки">
+  <textarea id="txt" placeholder="Вставте текст сюди"></textarea>
+  <div style="display:flex;justify-content:space-between;gap:8px">
+    <label class="btn">Файли: fb2, epub, pdf, txt, zip<input id="file" type="file" accept=".txt,.fb2,.epub,.pdf,.zip" multiple hidden></label>
+    <div style="display:flex;gap:8px"><button id="cancel">Скасувати</button><button id="ok" style="font-weight:600">Додати</button></div>
+  </div>
+</dialog>
+<div id="toast" hidden></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const SAMPLE = "Швидке читання працює просто: очі не біжать по рядках, а дивляться в одну точку. Слова змінюють одне одного по центру, а червона літера допомагає погляду не губитися. Так мозок витрачає менше сил на пошук наступного рядка. Почніть із повільної швидкості, а потім додавайте по двадцять п’ять слів за хвилину, поки не знайдете свій комфортний темп.";
+const D = {books:[],cur:null,wpm:300,size:100,theme:'beige',pause:true,days:{}};
+let S; try { S = {...D, ...JSON.parse(localStorage.getItem('rsvp2')||'{}')}; } catch(e){ S = {...D}; }
+let words = [], i = 0, playing = false, timer = null;
+const today = () => new Date().toLocaleDateString('sv');
+let idbOK = true;
+function save(){ try { localStorage.setItem('rsvp2', JSON.stringify(S, (k,v) => idbOK && (k==='text'||k==='par'||k==='im') ? undefined : v)); } catch(e){ toast('Немає місця в пам’яті браузера'); } }
+function toast(t){ const e=$('toast'); e.textContent=t; e.hidden=false; setTimeout(()=>e.hidden=true,2500); }
+const cur = () => S.books.find(b => b.id === S.cur);
+const norm = t => t.replace(/\s+/g,' ').trim();
+
+/* навігація */
+function go(v){
+  if(v!=='read') stop();
+  ['read','lib','shop','stat','opt'].forEach(s => $(s).hidden = s!==v);
+  document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-current', b.dataset.v===v));
+  if(v==='read' && S.mode==='page') renderPage(); if(v==='shop') renderShop(); if(v==='lib') renderBooks(); if(v==='stat') renderStats(); if(v==='opt') renderOpt();
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => go(b.dataset.v));
+
+/* читалка */
+function pivot(w){
+  const m = w.match(/^([^\p{L}\p{N}]*)(.*?)([^\p{L}\p{N}]*)$/u), n = m[2].length;
+  return Math.min(w.length-1, m[1].length + (n<=1?0:n<=5?1:n<=9?2:n<=13?3:4));
+}
+function show(){
+  const b = cur(); if(!b || !words.length) return;
+  const w = words[i], p = pivot(w), el = $('word'), k = b.im && b.im[i];
+  el.hidden = !!k; $('pic').hidden = !k;
+  if(k){ if(S.mode!=='page'){ getImg(b.id,k).then(u => { if(b.im[i]===k) $('pic').src = u || ''; }); if(playing) stop(); } }
+  else { el.children[0].textContent = w.slice(0,p); el.children[1].textContent = w[p]; el.children[2].textContent = w.slice(p+1); }
+  const n = words.length, mins = (n-i-1) / S.wpm;
+  $('pos').textContent = (i+1) + ' / ' + n;
+  $('fill').style.width = (n>1 ? i/(n-1)*100 : 100) + '%';
+  $('left').textContent = mins < 1 ? 'менше хвилини до кінця' : 'ще ~' + Math.round(mins) + ' хв';
+  $('wpmv').textContent = S.wpm + ' сл/хв';
+  b.pos = i;
+}
+function openBook(id, silent){
+  const b = S.books.find(x => x.id===id); if(!b) return;
+  stop(); S.cur = id; words = b.text.split(' '); i = Math.min(b.pos||0, words.length-1);
+  $('title').textContent = b.title; show(); save(); if(!silent) go('read');
+}
+function delay(w){
+  let d = 60000 / S.wpm;
+  if(S.pause){
+    if(/[.!?…]["»”’)]*$/.test(w)) d *= 2.2; else if(/[,;:–—]["»”’)]*$/.test(w)) d *= 1.5;
+    if(w.length > 9) d *= 1.3;
+  }
+  return d;
+}
+function tick(){
+  if(!playing) return;
+  if(i >= words.length-1){ stop(); return; }
+  i++; show(); S.days[today()] = (S.days[today()]||0) + 1;
+  if(i % 25 === 0) save();
+  timer = setTimeout(tick, delay(words[i]));
+}
+function start(){
+  if(!words.length) return;
+  if(i >= words.length-1) i = 0;
+  if(cur().im && cur().im[i] && i < words.length-1) i++;
+  playing = true; $('play').textContent = 'Пауза'; $('hint').hidden = true;
+  show(); timer = setTimeout(tick, delay(words[i]));
+}
+function stop(){ const was = playing; playing = false; clearTimeout(timer); $('play').textContent = 'Старт'; if(was) save(); }
+const toggle = () => playing ? stop() : start();
+const jump = d => { i = Math.max(0, Math.min(words.length-1, i+d)); show(); save(); };
+$('play').onclick = toggle; $('stage').onclick = toggle;
+$('back').onclick = () => jump(-10); $('fwd').onclick = () => jump(10);
+$('wpm').oninput = e => { S.wpm = +e.target.value; show(); save(); };
+document.addEventListener('keydown', e => {
+  if(e.target.matches('textarea,input') || $('read').hidden) return;
+  if(e.code==='Space'){ e.preventDefault(); toggle(); }
+  if(e.code==='ArrowLeft') jump(-10); if(e.code==='ArrowRight') jump(10);
+});
+
+/* книжки */
+function renderBooks(){
+  const box = $('books'); box.innerHTML = '';
+  if(!S.books.length){ box.innerHTML = '<p class="muted">Тут поки порожньо. Натисніть «Додати» і вставте текст або завантажте файл.</p>'; return; }
+  S.books.forEach(b => {
+    const n = b.text.split(' ').length, pr = n>1 ? Math.round((b.pos||0)/(n-1)*100) : 0;
+    const d = document.createElement('div');
+    d.innerHTML = `<button class="book"><span class="t"><span></span><span class="x" role="button" aria-label="Видалити">✕</span></span><div class="bar"><i style="width:${pr}%"></i></div><span class="muted">${pr}% · ${n} слів</span></button>`;
+    const btn = d.firstChild; btn.querySelector('.t span').textContent = b.title;
+    btn.onclick = () => openBook(b.id);
+    btn.querySelector('.x').onclick = e => { e.stopPropagation(); if(confirm('Видалити «'+b.title+'»?')){ S.books = S.books.filter(x=>x.id!==b.id); delBody(b.id); if(S.cur===b.id){ S.cur=null; words=[]; if(S.books[0]) openBook(S.books[0].id,true); } save(); renderBooks(); } };
+    box.appendChild(btn);
+  });
+}
+$('add').onclick = () => {$('ttl').value=''; $('txt').value='';$('dlg').showModal(); };
+$('cancel').onclick = () =>$('dlg').close();
+/* сховище IndexedDB */
+let _db; const IC = new Map();
+const db = () => _db || (_db = new Promise((res,rej) => { const r = indexedDB.open('reader',1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+async function idbGet(k){ try { const d = await db(); return await new Promise((res,rej) => { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); } catch(e){ return undefined; } }
+async function idbSet(k,v){ try { const d = await db(); await new Promise((res,rej) => { const t = d.transaction('kv','readwrite'); t.objectStore('kv').put(v,k); t.oncomplete = res; t.onerror = () => rej(t.error); }); } catch(e){ idbOK = false; toast('Не вдалося зберегти книжку на пристрої'); } }
+async function idbDel(lo,hi){ try { const d = await db(); d.transaction('kv','readwrite').objectStore('kv').delete(IDBKeyRange.bound(lo,hi)); } catch(e){} }
+const putBody = b => idbSet('b:'+b.id, {text:b.text, par:b.par, im:b.im});
+const delBody = id => { idbDel('b:'+id,'b:'+id); idbDel('i:'+id+':','i:'+id+':\uffff'); };
+async function getImg(id,k){ const key = id+':'+k; if(!IC.has(key)) IC.set(key, await idbGet('i:'+key)); return IC.get(key); }
+async function hydrate(){
+  for(const b of S.books){
+    if(b.text) await putBody(b);
+    else { const d = await idbGet('b:'+b.id); if(d){ b.text = d.text; b.par = d.par; b.im = d.im; } else b.text = 'Текст не знайдено.'; }
+  }
+}
+
+/* імпорт книжок */
+function txtBlocks(t){ return t.split(/\n+/).map(norm).filter(Boolean).map(s => ({p:s})); }
+function dec(buf){
+  let t = new TextDecoder('utf-8').decode(buf);
+  const m = t.slice(0,300).match(/encoding=["']([^"']+)["']/i);
+  if(m && !/utf-?8/i.test(m[1])){ try { t = new TextDecoder(m[1]).decode(buf); } catch(e){} }
+  else if(t.includes('\ufffd')) t = new TextDecoder('windows-1251').decode(buf);
+  return t;
+}
+function fb2(t){
+  const d = new DOMParser().parseFromString(t,'text/xml'), bin = {}, out = [];
+  d.querySelectorAll('binary').forEach(x => bin[x.getAttribute('id')] = 'data:'+(x.getAttribute('content-type')||'image/jpeg')+';base64,'+x.textContent.replace(/\s+/g,''));
+  d.querySelectorAll('body p, body image').forEach(el => {
+    if(el.localName==='image'){ const a = [...el.attributes].find(a => a.name.endsWith('href')); const u = a && bin[a.value.replace('#','')]; if(u) out.push({img:u}); }
+    else { const s = norm(el.textContent); if(s) out.push({p:s}); }
+  });
+  return {title: norm((d.querySelector('book-title')||{}).textContent || 'Без назви'), blocks: out};
+}
+async function epub(buf){
+  const z = await JSZip.loadAsync(buf), rd = async p => z.file(p) ? z.file(p).async('string') : '', P = s => new DOMParser().parseFromString(s,'text/xml');
+  const opfPath = P(await rd('META-INF/container.xml')).querySelector('rootfile').getAttribute('full-path');
+  const opf = P(await rd(opfPath)), base = opfPath.replace(/[^/]*$/,''), man = {}, out = [];
+  opf.querySelectorAll('manifest item').forEach(x => man[x.getAttribute('id')] = x.getAttribute('href'));
+  for(const r of opf.querySelectorAll('spine itemref')){
+    const href = man[r.getAttribute('idref')]; if(!href) continue;
+    const path = decodeURIComponent(new URL(base+href,'http://x/').pathname.slice(1));
+    const doc = new DOMParser().parseFromString(await rd(path),'text/html');
+    for(const el of doc.body.querySelectorAll('p,h1,h2,h3,h4,h5,h6,li,img')){
+      if(el.tagName==='IMG'){
+        const src = el.getAttribute('src'); if(!src) continue;
+        if(src.startsWith('data:')){ out.push({img:src}); continue; }
+        const ip = decodeURIComponent(new URL(src,'http://x/'+path).pathname.slice(1)), f = z.file(ip);
+        if(f){ const mime = {svg:'image/svg+xml',png:'image/png',gif:'image/gif',webp:'image/webp'}[ip.split('.').pop().toLowerCase()] || 'image/jpeg'; out.push({img:'data:'+mime+';base64,'+await f.async('base64')}); }
+      } else if(!(el.tagName==='LI' && el.querySelector('p'))){ const s = norm(el.textContent); if(s) out.push({p:s}); }
+    }
+  }
+  return {title: norm((opf.querySelector('title')||{}).textContent || 'Без назви'), blocks: out};
+}
+async function pdfBook(buf, name){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise, asImg = S.pdfImg !== false, out = [];
+  for(let n = 1; n <= pdf.numPages; n++){
+    const pg = await pdf.getPage(n);
+    if(asImg){ const vp = pg.getViewport({scale:1.6}), c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; await pg.render({canvasContext:c.getContext('2d'), viewport:vp}).promise; out.push({img:c.toDataURL('image/jpeg',0.82)}); }
+    else { const t = norm((await pg.getTextContent()).items.map(x => x.str).join(' ')); if(t) out.push({p:t}); }
+  }
+  return {title: name.replace(/\.[^.]+$/,''), blocks: out, pageMode: asImg};
+}
+async function readBook(f){
+  const name = f.name || '', buf = await f.arrayBuffer();
+  if(/\.epub$/i.test(name)) return epub(buf);
+  if(/\.pdf$/i.test(name)) return pdfBook(buf, name);
+  if(/\.fb2$/i.test(name)) return fb2(dec(buf));
+  if(/\.txt$/i.test(name)) return {title: name.replace(/\.[^.]+$/,''), blocks: txtBlocks(dec(buf))};
+}
+async function unzip(f){
+  const z = await JSZip.loadAsync(f), out = [];
+  for(const e of Object.values(z.files)) if(!e.dir && /\.(fb2|epub|txt)$/i.test(e.name)){ const bl = await e.async('blob'); bl.name = e.name.split('/').pop(); out.push(bl); }
+  return out;
+}
+async function addParsed(title, blocks){
+  if(!blocks.length) return null;
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5), W = [], Pr = [], im = {};
+  for(const b of blocks){
+    Pr.push(W.length);
+    if(b.img){ const k = 'k'+W.length; im[W.length] = k; await idbSet('i:'+id+':'+k, b.img); W.push('▣'); }
+    else W.push(...b.p.split(' '));
+  }
+  const book = {id, title, text: W.join(' '), par: Pr, im, pos: 0};
+  S.books.unshift(book); await putBody(book); save(); return book;
+}
+$('file').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = ''; $('dlg').close(); let n = 0;
+  for(const f of files){
+    toast('Імпорт: '+f.name);
+    try { for(const it of /\.zip$/i.test(f.name) ? await unzip(f) : [f]){ const r = await readBook(it), b = r && await addParsed(r.title, r.blocks); if(b){ n++; if(r.pageMode){ openBook(b.id); setMode('page'); } } } }
+    catch(err){ toast('Не вдалося прочитати '+f.name); }
+  }
+  if(n){ toast('Додано книжок: '+n); renderBooks(); }
+};
+
+/* режими читання */
+const parOf = b => { if(!b.par){ b.par = []; for(let k=0; k<words.length; k+=60) b.par.push(k); } return b.par; };
+let pgFrom = 0, pgTo = 0, tk = 0, sv;
+function mkPar(b,P,q){
+  const s = P[q], e = P[q+1] ?? words.length, el = document.createElement('p'); el.dataset.s = s;
+  if(b.im && b.im[s]){ const im = document.createElement('img'); im.alt = ''; getImg(b.id,b.im[s]).then(u => im.src = u || ''); el.appendChild(im); }
+  else el.textContent = words.slice(s,e).join(' ');
+  return el;
+}
+function renderPage(from){
+  const b = cur(); if(!b) return; const P = parOf(b), pg = $('page');
+  let k = 0; while(k+1 < P.length && P[k+1] <= i) k++;
+  pgFrom = from ?? Math.max(0,k-2); pgTo = Math.min(P.length, pgFrom+40); pg.textContent = '';
+  if(pgFrom > 0){ const u = document.createElement('button'); u.textContent = 'Раніше'; u.onclick = () => renderPage(Math.max(0,pgFrom-30)); pg.appendChild(u); }
+  for(let q = pgFrom; q < pgTo; q++) pg.appendChild(mkPar(b,P,q));
+  const t = [...pg.children].find(c => c.dataset.s !== undefined && +c.dataset.s === P[k]);
+  pg.scrollTop = t ? t.offsetTop-4 : 0;
+}
+$('page').onscroll = () => { if(tk) return; tk = requestAnimationFrame(() => {
+  tk = 0; const pg = $('page'), b = cur(); if(!b) return;
+  for(const el of pg.children) if(el.dataset.s !== undefined && el.offsetTop+el.offsetHeight > pg.scrollTop+4){
+    const old = i; i = +el.dataset.s; if(i > old && i-old < 1500) S.days[today()] = (S.days[today()]||0) + (i-old); show(); break;
+  }
+  const P = parOf(b);
+  if(pg.scrollTop+pg.clientHeight > pg.scrollHeight-300 && pgTo < P.length){ const to = Math.min(P.length, pgTo+30); for(let q = pgTo; q < to; q++) pg.appendChild(mkPar(b,P,q)); pgTo = to; }
+  clearTimeout(sv); sv = setTimeout(save, 800);
+}); };
+function setMode(m){
+  S.mode = m; stop(); $('read').classList.toggle('pg', m==='page');
+  document.querySelectorAll('[data-m]').forEach(b => b.setAttribute('aria-pressed', b.dataset.m===m));
+  if(m==='page') renderPage(); else show(); save();
+}
+document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => setMode(b.dataset.m));
+$('ok').onclick = async () => {
+  const bl = txtBlocks($('txt').value);$('dlg').close(); if(!bl.length) return;
+  const b = await addParsed($('ttl').value.trim() || 'Без назви', bl); if(b) openBook(b.id);
+};
+
+/* прогрес */
+function renderStats(){
+  const total = Object.values(S.days).reduce((a,b)=>a+b,0);
+  let streak = 0, d = new Date(); if(!S.days[today()]) d.setDate(d.getDate()-1);
+  while(S.days[d.toLocaleDateString('sv')]){ streak++; d.setDate(d.getDate()-1); }
+  const done = S.books.filter(b => b.pos >= b.text.split(' ').length-1).length;
+  $('cards').innerHTML = [['Сьогодні', S.days[today()]||0],['Усього слів', total],['Серія днів', streak],['Дочитано книжок', done]].map(c => `<div class="card"><b>${c[1]}</b><span class="muted">${c[0]}</span></div>`).join('');
+  const days = [...Array(7)].map((_,k) => { const x = new Date(); x.setDate(x.getDate()-6+k); return [x.toLocaleDateString('sv'), x.toLocaleDateString('uk',{weekday:'short'})]; });
+  const max = Math.max(1, ...days.map(x => S.days[x[0]]||0));
+  $('chart').innerHTML = days.map(x => `<div><i style="height:${(S.days[x[0]]||0)/max*88}px"></i>${x[1]}</div>`).join('');
+}
+
+/* магазин / каталог */
+const CAT = [
+ {id:'kobzar',t:'Кобзар',a:'Тарас Шевченко',g:'Поезія',cl:[9,10],p:0},
+ {id:'eneida',t:'Енеїда',a:'Іван Котляревський',g:'Поезія',cl:[9],p:0},
+ {id:'zakhar',t:'Захар Беркут',a:'Іван Франко',g:'Історична проза',cl:[8,9],p:0},
+ {id:'lisova',t:'Лісова пісня',a:'Леся Українка',g:'Драма',cl:[10],p:0},
+ {id:'kaidash',t:'Кайдашева сім’я',a:'Іван Нечуй-Левицький',g:'Проза',cl:[10],p:0},
+ {id:'tini',t:'Тіні забутих предків',a:'Михайло Коцюбинський',g:'Проза',cl:[10],p:0},
+ {id:'intermezzo',t:'Intermezzo',a:'Михайло Коцюбинський',g:'Проза',cl:[11],p:0}
+];
+const SH = {q:'', f:'all', cl:0};
+const FILT = [['all','Усе'],['school','Шкільна програма'],['free','Безкоштовні'],['paid','Платні']];
+function cardHTML(c){
+  const own = S.books.some(b => b.id===c.id);
+  return `<div class="item"><div><b>${c.t}</b><span class="muted">${c.a} · ${c.g}</span></div><button data-id="${c.id}"${own?' disabled':''}>${own?'У ваших книжках':'Додати'}</button></div>`;
+}
+function renderShop(){
+  $('chips').innerHTML = FILT.map(f => `<button data-f="${f[0]}" aria-pressed="${SH.f===f[0]}">${f[1]}</button>`).join('');
+  const gr = $('grades'); gr.hidden = SH.f!=='school';
+  gr.innerHTML = [0,8,9,10,11].map(n => `<button data-c="${n}" aria-pressed="${SH.cl===n}">${n?n+' клас':'Усі класи'}</button>`).join('');
+  const q = SH.q.toLowerCase();
+  const list = CAT.filter(c => (!q || (c.t+' '+c.a).toLowerCase().includes(q)));
+  $('rh').textContent = list.length ? 'Каталог' : 'Нічого не знайдено';
+  $('cat').innerHTML = list.map(cardHTML).join('');
+}
+$('q').oninput = e => { SH.q = e.target.value; renderShop(); };$('shop').onclick = e => {
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.f){ SH.f = b.dataset.f; renderShop(); }
+  else if(b.dataset.c !== undefined){ SH.cl = +b.dataset.c; renderShop(); }
+  else if(b.dataset.id){
+    const c = CAT.find(x => x.id===b.dataset.id);
+    addParsed(c.t, txtBlocks('Повний текст твору «'+c.t+'» автора '+c.a+'. Навчальні матеріали, літературна програма школи та підготовка до НМТ.')).then(bk => {
+      if(bk){ toast('Додано до вашої бібліотеки!'); openBook(bk.id); }
+    });
+  }
+};
+
+/* АВТОПОШУК ТА ПРЯМЕ ЗАВАНТАЖЕННЯ КНИГ З ІНТЕРНЕТУ */
+const esc = s => String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function jget(u){ const r = await fetch(u); if(!r.ok) throw 0; return r.json(); }
+
+$('web').onclick = async () => {
+  const query = $('q').value.trim(), box =$('webres');
+  if(query.length < 2){ toast('Введіть запит для пошуку'); return; }
+  box.innerHTML = '<p class="muted" style="text-align:center;padding:12px">Шукаю книжки, казки та матеріали у відкритих джерелах…</p>';
+  const e = encodeURIComponent(query);
+
+  try {
+    // Шукаємо в Project Gutenberg (величезна база книг) та Вікіджерелах
+    const [gu, ws] = await Promise.allSettled([
+      jget('https://gutendex.com/books/?search='+e),
+      jget('https://uk.wikisource.org/w/api.php?action=query&list=search&srlimit=5&format=json&origin=*&srsearch='+e)
+    ]);
+
+    let h = '';
+    let foundCount = 0;
+
+    if(gu.status === 'fulfilled' && gu.value?.results?.length){
+      h += '<h3>Знайдено у бібліотеці Gutenberg</h3>';
+      gu.value.results.slice(0, 5).forEach(item => {
+        const formats = item.formats || {};
+        // Шукаємо пряме посилання на epub або txt
+        const fileUrl = formats['application/epub+zip'] || formats['text/plain; charset=utf-8'] || '';
+        const author = (item.authors[0]||{}).name || 'Невідомий автор';
+        if(fileUrl){
+          foundCount++;
+          h += `<div class="item">
+                  <div><b>${esc(item.title)}</b><span class="muted">${esc(author)}</span></div>
+                  <button onclick="downloadAndAddBook('${fileUrl}', '${esc(item.title)}')">Завантажити в книжки</button>
+                </div>`;
         }
-
-        function dbGet(key) {
-            return new Promise((resolve, reject) => {
-                try {
-                    const tx = db.transaction('kv', 'readonly');
-                    const store = tx.objectStore('kv');
-                    const req = store.get(key);
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => resolve(null);
-                } catch (err) {
-                    resolve(null);
-                }
-            });
-        }
-
-        function dbSet(key, val) {
-            return new Promise((resolve, reject) => {
-                try {
-                    const tx = db.transaction('kv', 'readwrite');
-                    const store = tx.objectStore('kv');
-                    const req = store.put(val, key);
-                    req.onsuccess = () => resolve(true);
-                    req.onerror = () => resolve(false);
-                } catch (err) {
-                    resolve(false);
-                }
-            });
-        }
-
-        function dbDelete(key) {
-            return new Promise((resolve, reject) => {
-                try {
-                    const tx = db.transaction('kv', 'readwrite');
-                    const store = tx.objectStore('kv');
-                    store.delete(key);
-                    tx.oncomplete = () => resolve(true);
-                } catch (err) {
-                    resolve(false);
-                }
-            });
-        }
-
-        /* --- Initialization & Hydration --- */
-        window.addEventListener('DOMContentLoaded', async () => {
-            try {
-                await initDB();
-                loadState();
-                applyTheme(state.theme);
-                applySize(state.size);
-                
-                // Hydrate UI inputs
-                document.getElementById('wpm-range').value = state.wpm;
-                document.getElementById('opt-theme').value = state.theme;
-                document.getElementById('opt-size').value = state.size;
-                document.getElementById('opt-long-pauses').checked = state.longPauses;
-                document.getElementById('opt-pdf-img').checked = state.pdfImg;
-
-                if (state.books.length === 0) {
-                    await addDemoBook();
-                } else if (state.cur === null && state.books.length > 0) {
-                    state.cur = state.books[0].id;
-                }
-
-                if (state.cur !== null) {
-                    await loadCurrentBookData();
-                }
-
-                renderBooksList();
-                renderShopCatalog();
-                renderProgress();
-                updateReadView();
-
-                // Navigation wiring
-                document.querySelectorAll('.nav-item').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const targetId = btn.getAttribute('data-target');
-                        switchSection(targetId);
-                    });
-                });
-
-                // Keyboard shortcuts
-                window.addEventListener('keydown', (e) => {
-                    if (document.getElementById('sec-read').classList.contains('active')) {
-                        if (e.code === 'Space') {
-                            e.preventDefault();
-                            togglePlay();
-                        } else if (e.code === 'ArrowLeft') {
-                            e.preventDefault();
-                            stepWord(-10);
-                        } else if (e.code === 'ArrowRight') {
-                            e.preventDefault();
-                            stepWord(10);
-                        }
-                    }
-                });
-
-            } catch (err) {
-                console.error('Init error:', err);
-            }
-        });
-
-        function loadState() {
-            const saved = localStorage.getItem('rsvp2');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    state = { ...state, ...parsed };
-                } catch (e) {}
-            }
-        }
-
-        function saveState() {
-            const copy = { ...state };
-            localStorage.setItem('rsvp2', JSON.stringify(copy));
-        }
-
-        async function addDemoBook() {
-            const demoTitle = 'Як читати швидко';
-            const demoText = 'Швидкочитання — це техніка опрацювання текстової інформації, що дозволяє значно збільшити швидкість читання без втрати розуміння. Основним принципом є усунення внутрішнього проговорювання слів або субвокалізації. Тренуючись щодня по п’ятнадцять хвилин, ви навчитеся охоплювати поглядом цілі блоки слів та суттєво підвищите свою продуктивність. Успіхів у навчанні!';
-            const words = demoText.split(/\s+/);
-            const id = 'book_' + Date.now();
-            const bookMeta = { id, title: demoTitle, pos: 0, g: 'Проза' };
-            state.books.push(bookMeta);
-            state.cur = id;
-            
-            const par = [0];
-            await dbSet('b:' + id, { text: demoText, par, im: {} });
-            saveState();
-        }
-
-        async function loadCurrentBookData() {
-            if (!state.cur) return;
-            const data = await dbGet('b:' + state.cur);
-            if (data) {
-                currentBookData = data;
-            } else {
-                currentBookData = { text: '', par: [0], im: {} };
-            }
-        }
-
-        /* --- Navigation & Views --- */
-        function switchSection(targetId) {
-            if (!state.pause) {
-                togglePlay(); // stop reading on section switch
-            }
-            document.querySelectorAll('main').forEach(m => m.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            
-            document.getElementById(targetId).classList.add('active');
-            const btn = document.querySelector(`.nav-item[data-target="${targetId}"]`);
-            if (btn) btn.classList.add('active');
-
-            if (targetId === 'sec-prog') {
-                renderProgress();
-            } else if (targetId === 'sec-shop') {
-                renderShopCatalog();
-            } else if (targetId === 'sec-books') {
-                renderBooksList();
-            } else if (targetId === 'sec-read') {
-                updateReadView();
-            }
-        }
-
-        function showToast(msg) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = msg;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        /* --- Reading Engine (RSVP & Page) --- */
-        function getWordsArray() {
-            if (!currentBookData.text) return [];
-            return currentBookData.text.split(/\s+/);
-        }
-
-        function setMode(m) {
-            state.mode = m;
-            document.getElementById('chip-rsvp').setAttribute('aria-pressed', m === 'rsvp');
-            document.getElementById('chip-page').setAttribute('aria-pressed', m === 'page');
-            
-            if (!state.pause) togglePlay();
-
-            if (m === 'page') {
-                document.getElementById('read-scene').style.display = 'none';
-                document.getElementById('sec-page-mode').style.display = 'block';
-                renderPageMode();
-            } else {
-                document.getElementById('read-scene').style.display = 'flex';
-                document.getElementById('sec-page-mode').style.display = 'none';
-                updateReadView();
-            }
-            saveState();
-        }
-
-        function updateReadView() {
-            const words = getWordsArray();
-            const book = state.books.find(b => b.id === state.cur);
-            if (!book) {
-                document.getElementById('read-book-title').textContent = 'Немає книжки';
-                return;
-            }
-            document.getElementById('read-book-title').textContent = book.title;
-            
-            let pos = book.pos || 0;
-            if (pos >= words.length && words.length > 0) pos = words.length - 1;
-            if (pos < 0) pos = 0;
-            book.pos = pos;
-
-            // Progress bar & fraction
-            const pct = words.length > 0 ? (pos / words.length) * 100 : 0;
-            document.getElementById('prog-bar-fill').style.width = pct + '%';
-            document.getElementById('read-progress-fraction').textContent = `${pos + 1} / ${words.length}`;
-            document.getElementById('read-wpm-label').textContent = `${state.wpm} сл/хв`;
-
-            // Time left
-            const wordsLeft = words.length - pos;
-            const mins = Math.ceil(wordsLeft / state.wpm);
-            if (mins <= 1) {
-                document.getElementById('read-time-left').textContent = 'менше хвилини до кінця';
-            } else {
-                document.getElementById('read-time-left').textContent = `ще ~${mins} хв`;
-            }
-
-            // Check if current word is image placeholder
-            const currentWord = words[pos] || '';
-            const sceneEl = document.getElementById('read-scene');
-            
-            if (currentWord === '▣' && currentBookData.im && currentBookData.im[pos]) {
-                const imgKey = currentBookData.im[pos];
-                dbGet(`i:${state.cur}:${imgKey}`).then(dataURL => {
-                    if (dataURL) {
-                        sceneEl.innerHTML = `<div class="image-container"><img src="${dataURL}" alt="Ілюстрація"></div>`;
-                    } else {
-                        renderRsvpWord(currentWord);
-                    }
-                });
-            } else {
-                sceneEl.innerHTML = `
-                    <div class="guide-line guide-top"></div>
-                    <div class="guide-line guide-bottom"></div>
-                    <div class="word-grid" id="word-grid-el">
-                        <span class="word-left" id="w-left"></span>
-                        <span class="word-anchor" id="w-anchor"></span>
-                        <span class="word-right" id="w-right"></span>
-                    </div>
-                    <div class="tap-hint" id="tap-hint" style="display:${pos === 0 ? 'block' : 'none'}">Торкніться екрана, щоб почати</div>
-                `;
-                renderRsvpWord(currentWord);
-            }
-        }
-
-        function renderRsvpWord(word) {
-            const leftEl = document.getElementById('w-left');
-            const anchorEl = document.getElementById('w-anchor');
-            const rightEl = document.getElementById('w-right');
-            if (!leftEl || !anchorEl || !rightEl) return;
-
-            // Anchor logic
-            let clean = word.replace(/^[«„(“”"]+/, '').replace(/[»”"),.?!;:–—]+$/, '');
-            let leadLen = word.length - word.indexOf(clean[0] || word[0]);
-            let n = clean.length;
-            let anchorIdx = 0;
-            if (n <= 1) anchorIdx = 0;
-            else if (n <= 5) anchorIdx = 1;
-            else if (n <= 9) anchorIdx = 2;
-            else if (n <= 13) anchorIdx = 3;
-            else anchorIdx = 4;
-            
-            let totalAnchorIdx = leadLen + anchorIdx;
-            if (totalAnchorIdx >= word.length) totalAnchorIdx = word.length - 1;
-            if (totalAnchorIdx < 0) totalAnchorIdx = 0;
-
-            leftEl.textContent = word.substring(0, totalAnchorIdx);
-            anchorEl.textContent = word[totalAnchorIdx] || '';
-            rightEl.textContent = word.substring(totalAnchorIdx + 1);
-        }
-
-        function togglePlay() {
-            state.pause = !state.pause;
-            const btn = document.getElementById('btn-play-pause');
-            btn.textContent = state.pause ? 'Старт' : 'Пауза';
-            
-            if (state.pause) {
-                clearTimeout(playTimer);
-            } else {
-                scheduleNextWord();
-            }
-        }
-
-        function scheduleNextWord() {
-            if (state.pause) return;
-            const words = getWordsArray();
-            const book = state.books.find(b => b.id === state.cur);
-            if (!book || book.pos >= words.length) {
-                state.pause = true;
-                document.getElementById('btn-play-pause').textContent = 'Старт';
-                return;
-            }
-
-            updateReadView();
-            
-            // Stats & Saving
-            recordWordRead();
-
-            let delay = 60000 / state.wpm;
-            const currentWord = words[book.pos];
-
-            if (state.longPauses) {
-                if (/[.!?…][»”")\]]*$/.test(currentWord)) {
-                    delay *= 2.2;
-                } else if (/[,;:–—][»”")\]]*$/.test(currentWord)) {
-                    delay *= 1.5;
-                } else if (currentWord.length > 9) {
-                    delay *= 1.3;
-                }
-            }
-
-            // Image pause
-            if (currentWord === '▣') {
-                state.pause = true;
-                document.getElementById('btn-play-pause').textContent = 'Старт';
-                return;
-            }
-
-            book.pos++;
-            if (book.pos >= words.length) {
-                book.pos = words.length - 1;
-                state.pause = true;
-                document.getElementById('btn-play-pause').textContent = 'Старт';
-                saveState();
-                return;
-            }
-
-            if (Date.now() - lastSaveTime > 1000) {
-                saveState();
-                lastSaveTime = Date.now();
-            }
-
-            playTimer = setTimeout(scheduleNextWord, delay);
-        }
-
-        function stepWord(delta) {
-            const book = state.books.find(b => b.id === state.cur);
-            if (!book) return;
-            const words = getWordsArray();
-            book.pos += delta;
-            if (book.pos < 0) book.pos = 0;
-            if (book.pos >= words.length) book.pos = words.length - 1;
-            updateReadView();
-            saveState();
-        }
-
-        function changeWpm(val) {
-            state.wpm = parseInt(val, 10);
-            document.getElementById('read-wpm-label').textContent = `${state.wpm} сл/хв`;
-            saveState();
-        }
-
-        function seekProgress(e) {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const pct = clickX / rect.width;
-            const words = getWordsArray();
-            const book = state.books.find(b => b.id === state.cur);
-            if (!book || words.length === 0) return;
-            book.pos = Math.floor(pct * words.length);
-            updateReadView();
-            saveState();
-        }
-
-        /* --- Page Mode Implementation --- */
-        let pageCurrentParagraphStart = 0;
-
-        function renderPageMode() {
-            const wrapper = document.getElementById('page-content-wrapper');
-            wrapper.innerHTML = '';
-            const words = getWordsArray();
-            const book = state.books.find(b => b.id === state.cur);
-            if (!book) return;
-
-            let pos = book.pos || 0;
-            // Find paragraph index for pos
-            let parIdx = 0;
-            const pars = currentBookData.par || [0];
-            for (let i = 0; i < pars.length; i++) {
-                if (pars[i] <= pos) parIdx = i;
-                else break;
-            }
-
-            let startPar = Math.max(0, parIdx - 2);
-            let endPar = Math.min(pars.length, startPar + 40);
-
-            for (let p = startPar; p < endPar; p++) {
-                let startWordIdx = pars[p];
-                let endWordIdx = (p + 1 < pars.length) ? pars[p + 1] : words.length;
-                let pWords = words.slice(startWordIdx, endWordIdx);
-                let pText = pWords.join(' ');
-
-                if (pText === '▣' && currentBookData.im) {
-                    // find image key
-                    for (let wIdx = startWordIdx; wIdx < endWordIdx; wIdx++) {
-                        if (currentBookData.im[wIdx]) {
-                            const imgKey = currentBookData.im[wIdx];
-                            dbGet(`i:${state.cur}:${imgKey}`).then(dataURL => {
-                                if (dataURL) {
-                                    const img = document.createElement('img');
-                                    img.src = dataURL;
-                                    wrapper.appendChild(img);
-                                }
-                            });
-                            break;
-                        }
-                    }
-                } else if (pText.trim()) {
-                    const pEl = document.createElement('p');
-                    pEl.textContent = pText;
-                    pEl.dataset.wordIndex = startWordIdx;
-                    wrapper.appendChild(pEl);
-                }
-            }
-
-            // Scroll listener for dynamic rendering and position tracking
-            const pageSec = document.getElementById('sec-page-mode');
-            pageSec.onscroll = () => {
-                // track position based on visible top paragraph
-                const paragraphs = wrapper.querySelectorAll('p');
-                for (let pEl of paragraphs) {
-                    const rect = pEl.getBoundingClientRect();
-                    if (rect.top >= 0 && rect.top < 300) {
-                        const wIdx = parseInt(pEl.dataset.wordIndex, 10);
-                        if (!isNaN(wIdx) && Math.abs(book.pos - wIdx) > 20) {
-                            let jump = Math.abs(book.pos - wIdx);
-                            if (jump < 1500) recordWordsReadCount(jump);
-                            book.pos = wIdx;
-                            saveState();
-                        }
-                        break;
-                    }
-                }
-            };
-        }
-
-        function loadEarlierParagraphs() {
-            showToast('Завантажено додаткові абзаци');
-        }
-
-        /* --- Statistics & Progress --- */
-        function recordWordRead() {
-            recordWordsReadCount(1);
-        }
-
-        function recordWordsReadCount(count) {
-            const today = new Date().toISOString().split('T')[0];
-            if (!state.days) state.days = {};
-            state.days[today] = (state.days[today] || 0) + count;
-        }
-
-        function renderProgress() {
-            const todayStr = new Date().toISOString().split('T')[0];
-            const todayWords = (state.days && state.days[todayStr]) ? state.days[todayStr] : 0;
-            
-            let totalWords = 0;
-            if (state.days) {
-                for (let k in state.days) totalWords += state.days[k];
-            }
-
-            // Streak calculation
-            let streak = 0;
-            let d = new Date();
-            while (true) {
-                const s = d.toISOString().split('T')[0];
-                if (state.days && state.days[s] && state.days[s] > 0) {
-                    streak++;
-                    d.setDate(d.getDate() - 1);
-                } else {
-                    if (streak === 0) {
-                        // check yesterday
-                        d.setDate(d.getDate() - 1);
-                        const sYest = d.toISOString().split('T')[0];
-                        if (state.days && state.days[sYest] && state.days[sYest] > 0) {
-                            streak++;
-                            d.setDate(d.getDate() - 1);
-                            continue;
-                        }
-                    }
-                    break;
-                }
-            }
-
-            document.getElementById('stat-today').textContent = todayWords;
-            document.getElementById('stat-total').textContent = totalWords;
-            document.getElementById('stat-streak').textContent = streak;
-            document.getElementById('stat-completed').textContent = state.books.filter(b => b.pos && b.pos > 0).length;
-
-            // Chart 7 days
-            const chartContainer = document.getElementById('chart-bars-container');
-            chartContainer.innerHTML = '';
-            const daysNames = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-            
-            let maxVal = 100;
-            let last7 = [];
-            for (let i = 6; i >= 0; i--) {
-                const dt = new Date();
-                dt.setDate(dt.getDate() - i);
-                const s = dt.toISOString().split('T')[0];
-                const count = (state.days && state.days[s]) ? state.days[s] : 0;
-                if (count > maxVal) maxVal = count;
-                last7.push({ name: daysNames[dt.getDay()], count });
-            }
-
-            last7.forEach(item => {
-                const col = document.createElement('div');
-                col.className = 'chart-bar-col';
-                const heightPct = Math.max(4, Math.round((item.count / maxVal) * 100));
-                col.innerHTML = `
-                    <div style="font-size:10px; color:var(--mute);">${item.count}</div>
-                    <div class="chart-bar" style="height: ${heightPct}%;"></div>
-                    <span class="chart-lbl">${item.name}</span>
-                `;
-                chartContainer.appendChild(col);
-            });
-        }
-
-        /* --- Books Management & Importers --- */
-        function renderBooksList() {
-            const container = document.getElementById('books-list-container');
-            container.innerHTML = '';
-
-            if (state.books.length === 0) {
-                container.innerHTML = `<div class="empty-state">Тут поки порожньо. Натисніть «Додати» і вставте текст або завантажте файл.</div>`;
-                return;
-            }
-
-            state.books.forEach(b => {
-                const card = document.createElement('div');
-                card.className = 'book-card';
-                
-                // We need words length for progress
-                dbGet('b:' + b.id).then(data => {
-                    const wordsCount = data && data.text ? data.text.split(/\s+/).length : 1;
-                    const pos = b.pos || 0;
-                    const pct = Math.round((pos / wordsCount) * 100);
-
-                    card.innerHTML = `
-                        <div class="book-card-top">
-                            <div class="book-title">${b.title}</div>
-                            <button class="book-delete" onclick="event.stopPropagation(); deleteBook('${b.id}')">✕</button>
-                        </div>
-                        <div class="book-meta">${pct}% · ${wordsCount} слів</div>
-                        <div class="book-prog"><div class="book-prog-fill" style="width: ${pct}%;"></div></div>
-                    `;
-                    card.onclick = () => {
-                        state.cur = b.id;
-                        loadCurrentBookData().then(() => {
-                            switchSection('sec-read');
-                        });
-                    };
-                });
-
-                container.appendChild(card);
-            });
-        }
-
-        function openAddBookModal() {
-            document.getElementById('modal-add-book').classList.add('open');
-        }
-        function closeAddBookModal() {
-            document.getElementById('modal-add-book').classList.remove('open');
-        }
-
-        async function confirmAddBook() {
-            const titleInput = document.getElementById('add-book-title').value.trim();
-            const textInput = document.getElementById('add-book-text').value.trim();
-            const fileInput = document.getElementById('add-book-files');
-
-            closeAddBookModal();
-
-            if (fileInput.files.length > 0) {
-                let addedCount = 0;
-                for (let file of fileInput.files) {
-                    showToast(`Імпорт: ${file.name}`);
-                    await importFile(file);
-                    addedCount++;
-                }
-                showToast(`Додано книжок: ${addedCount}`);
-            } else if (textInput) {
-                const title = titleInput || 'Без назви';
-                const id = 'book_' + Date.now();
-                const words = textInput.split(/\s+/);
-                const par = [0];
-                for(let i=0; i<words.length; i++) {
-                    if (i > 0 && i % 60 === 0) par.push(i);
-                }
-                state.books.push({ id, title, pos: 0, g: 'Проза' });
-                state.cur = id;
-                await dbSet('b:' + id, { text: textInput, par, im: {} });
-                saveState();
-                showToast(`Додано книжок: 1`);
-            }
-
-            document.getElementById('add-book-title').value = '';
-            document.getElementById('add-book-text').value = '';
-            fileInput.value = '';
-
-            renderBooksList();
-            updateReadView();
-        }
-
-        async function deleteBook(id) {
-            if (!confirm('Видалити цю книжку та всі пов’язані дані?')) return;
-            state.books = state.books.filter(b => b.id !== id);
-            if (state.cur === id) {
-                state.cur = state.books.length > 0 ? state.books[0].id : null;
-            }
-            await dbDelete('b:' + id);
-            saveState();
-            renderBooksList();
-            if (state.cur) await loadCurrentBookData();
-            updateReadView();
-            showToast('Книжку видалено');
-        }
-
-        async function importFile(file) {
-            const name = file.name.toLowerCase();
-            const arrayBuffer = await file.arrayBuffer();
-
-            if (name.endsWith('.txt')) {
-                let decoder = new TextDecoder('utf-8');
-                let text = decoder.decode(arrayBuffer);
-                if (text.includes('\ufffd')) {
-                    decoder = new TextDecoder('windows-1251');
-                    text = decoder.decode(arrayBuffer);
-                }
-                addBookSimple(file.name.replace(/\.[^/.]+$/, ''), text);
-            } else if (name.endsWith('.fb2')) {
-                let decoder = new TextDecoder('utf-8');
-                let text = decoder.decode(arrayBuffer);
-                if (text.includes('\ufffd')) {
-                    decoder = new TextDecoder('windows-1251');
-                    text = decoder.decode(arrayBuffer);
-                }
-                parseFb2(text, file.name);
-            } else if (name.endsWith('.epub')) {
-                await parseEpub(arrayBuffer, file.name);
-            } else if (name.endsWith('.pdf')) {
-                await parsePdf(arrayBuffer, file.name);
-            } else if (name.endsWith('.zip')) {
-                const zip = await JSZip.loadAsync(arrayBuffer);
-                for (let filename of Object.keys(zip.files)) {
-                    if (filename.endsWith('.txt') || filename.endsWith('.fb2') || filename.endsWith('.epub')) {
-                        const content = await zip.files[filename].async('arraybuffer');
-                        await importFile(new File([content], filename));
-                    }
-                }
-            }
-        }
-
-        async function addBookSimple(title, text) {
-            const id = 'book_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-            const words = text.split(/\s+/);
-            const par = [0];
-            for (let i = 0; i < words.length; i++) {
-                if (i > 0 && i % 60 === 0) par.push(i);
-            }
-            state.books.push({ id, title, pos: 0, g: 'Проза' });
-            state.cur = id;
-            await dbSet('b:' + id, { text, par, im: {} });
-            saveState();
-        }
-
-        async function parseFb2(xmlText, fileName) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-            let title = 'FB2 Книжка';
-            const bookTitleEl = xmlDoc.querySelector('book-title');
-            if (bookTitleEl && bookTitleEl.textContent) {
-                title = bookTitleEl.textContent;
-            } else {
-                title = fileName.replace(/\.[^/.]+$/, '');
-            }
-
-            const body = xmlDoc.querySelector('body');
-            let textParts = [];
-            let par = [];
-            let im = {};
-            let wordCount = 0;
-
-            // Extract binaries
-            let binaries = {};
-            xmlDoc.querySelectorAll('binary').forEach(bin => {
-                let id = bin.getAttribute('id');
-                binaries[id] = 'data:' + bin.getAttribute('content-type') + ';base64,' + bin.textContent.trim();
-            });
-
-            if (body) {
-                let pElements = body.querySelectorAll('p, image');
-                for (let el of pElements) {
-                    if (el.tagName.toLowerCase() === 'image') {
-                        let href = el.getAttribute('l:href') || el.getAttribute('xlink:href') || '';
-                        href = href.replace(/^#/, '');
-                        if (binaries[href]) {
-                            par.push(wordCount);
-                            textParts.push('▣');
-                            im[wordCount] = 'img_' + Math.random().toString(36).substr(2, 9);
-                            await dbSet(`i:${state.cur_temp || 'temp'}:${im[wordCount]}`, binaries[href]);
-                            wordCount++;
-                        }
-                    } else {
-                        let pText = el.textContent.trim();
-                        if (pText) {
-                            par.push(wordCount);
-                            let pWords = pText.split(/\s+/);
-                            textParts.push(...pWords);
-                            wordCount += pWords.length;
-                        }
-                    }
-                }
-            }
-
-            if (textParts.length === 0) {
-                textParts = xmlText.split(/\s+/);
-                par = [0];
-            }
-
-            const id = 'book_' + Date.now();
-            state.books.push({ id, title, pos: 0, g: 'Проза' });
-            state.cur = id;
-            
-            // fix image keys prefix
-            let fixedIm = {};
-            for(let k in im) {
-                let newKey = 'img_' + Math.random().toString(36).substr(2, 9);
-                let dataURL = await dbGet(`i:temp:${im[k]}`);
-                if(dataURL) await dbSet(`i:${id}:${newKey}`, dataURL);
-                fixedIm[k] = newKey;
-            }
-
-            await dbSet('b:' + id, { text: textParts.join(' '), par, im: fixedIm });
-            saveState();
-        }
-
-        async function parseEpub(arrayBuffer, fileName) {
-            try {
-                const zip = await JSZip.loadAsync(arrayBuffer);
-                let title = fileName.replace(/\.[^/.]+$/, '');
-                
-                // Read container.xml
-                const containerFile = zip.file('META-INF/container.xml');
-                if (!containerFile) return;
-                const containerXml = await containerFile.async('text');
-                const parser = new DOMParser();
-                const containerDoc = parser.parseFromString(containerXml, 'text/xml');
-                const rootfile = containerDoc.querySelector('rootfile');
-                if (!rootfile) return;
-                const opfPath = rootfile.getAttribute('full-path');
-                
-                const opfFile = zip.file(opfPath);
-                if (!opfFile) return;
-                const opfText = await opfFile.async('text');
-                const opfDoc = parser.parseFromString(opfText, 'text/xml');
-
-                const dcTitle = opfDoc.querySelector('dc\\:title, title');
-                if (dcTitle) title = dcTitle.textContent;
-
-                // Simple text extraction from html/xhtml files in epub
-                let textParts = [];
-                let par = [];
-                let wordCount = 0;
-
-                const opfDir = opfPath.substring(0, opfPath.lastIndexOf('/') + 1);
-                let manifest = {};
-                opfDoc.querySelectorAll('item').forEach(item => {
-                    manifest[item.getAttribute('id')] = opfDir + item.getAttribute('href');
-                });
-
-                let spineItems = [];
-                opfDoc.querySelectorAll('itemref').forEach(itemref => {
-                    let idref = itemref.getAttribute('idref');
-                    if (manifest[idref]) spineItems.push(manifest[idref]);
-                });
-
-                const id = 'book_' + Date.now();
-                state.cur_temp = id;
-                let im = {};
-
-                for (let path of spineItems) {
-                    const htmlFile = zip.file(path);
-                    if (htmlFile) {
-                        const htmlText = await htmlFile.async('text');
-                        const htmlDoc = parser.parseFromString(htmlText, 'text/html');
-                        
-                        let elements = htmlDoc.querySelectorAll('p, h1, h2, h3, h4, h5, h6, img');
-                        for (let el of elements) {
-                            if (el.tagName.toLowerCase() === 'img') {
-                                let src = el.getAttribute('src');
-                                // resolve path
-                                let fullImgPath = path.substring(0, path.lastIndexOf('/') + 1) + src;
-                                // normalize path simple
-                                let imgZipFile = zip.file(fullImgPath) || zip.file(src);
-                                if (imgZipFile) {
-                                    let imgBlob = await imgZipFile.async('blob');
-                                    let reader = new FileReader();
-                                    let dataURL = await new Promise(res => {
-                                        reader.onload = () => res(reader.result);
-                                        reader.readAsDataURL(imgBlob);
-                                    });
-
-                                    par.push(wordCount);
-                                    textParts.push('▣');
-                                    let imgKey = 'img_' + Math.random().toString(36).substr(2, 9);
-                                    im[wordCount] = imgKey;
-                                    await dbSet(`i:${id}:${imgKey}`, dataURL);
-                                    wordCount++;
-                                }
-                            } else {
-                                let t = el.textContent.trim();
-                                if (t) {
-                                    par.push(wordCount);
-                                    let pWords = t.split(/\s+/);
-                                    textParts.push(...pWords);
-                                    wordCount += pWords.length;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (textParts.length === 0) {
-                    textParts = ['Порожня', 'epub', 'книжка'];
-                    par = [0];
-                }
-
-                state.books.push({ id, title, pos: 0, g: 'Проза' });
-                state.cur = id;
-                await dbSet('b:' + id, { text: textParts.join(' '), par, im });
-                saveState();
-            } catch (err) {
-                console.error('EPUB parse error:', err);
-                showToast('Помилка читання EPUB файлу');
-            }
-        }
-
-        async function parsePdf(arrayBuffer, fileName) {
-            try {
-                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-                const pdfDoc = await loadingTask.promise;
-                let title = fileName.replace(/\.[^/.]+$/, '');
-                let textParts = [];
-                let par = [];
-                let im = {};
-                let wordCount = 0;
-
-                const id = 'book_' + Date.now();
-                state.cur_temp = id;
-
-                for (let i = 1; i <= pdfDoc.numPages; i++) {
-                    const page = await pdfDoc.getPage(i);
-                    
-                    if (state.pdfImg) {
-                        const viewport = page.getViewport({ scale: 1.6 });
-                        const canvas = document.createElement('canvas');
-                        const context = canvas.getContext('2d');
-                        canvas.height = viewport.height;
-                        canvas.width = viewport.width;
-
-                        await page.render({ canvasContext: context, viewport: viewport }).promise;
-                        let dataURL = canvas.toDataURL('image/jpeg', 0.82);
-
-                        par.push(wordCount);
-                        textParts.push('▣');
-                        let imgKey = 'img_' + Math.random().toString(36).substr(2, 9);
-                        im[wordCount] = imgKey;
-                        await dbSet(`i:${id}:${imgKey}`, dataURL);
-                        wordCount++;
-                    } else {
-                        const textContent = await page.getTextContent();
-                        let pageText = textContent.items.map(item => item.str).join(' ');
-                        if (pageText.trim()) {
-                            par.push(wordCount);
-                            let pWords = pageText.split(/\s+/);
-                            textParts.push(...pWords);
-                            wordCount += pWords.length;
-                        }
-                    }
-                }
-
-                state.books.push({ id, title, pos: 0, g: 'Проза' });
-                state.cur = id;
-                await dbSet('b:' + id, { text: textParts.join(' '), par, im });
-                saveState();
-                if (state.pdfImg && state.mode === 'rsvp') {
-                    setMode('page');
-                }
-            } catch (err) {
-                console.error('PDF parse error:', err);
-                showToast('Помилка обробки PDF файлу');
-            }
-        }
-
-        /* --- Shop & Internet Search (9 & 9б) --- */
-        const defaultCatalog = [
-            { title: 'Кобзар', author: 'Тарас Шевченко', genre: 'Поезія', schoolClass: '9-10', price: 0 },
-            { title: 'Енеїда', author: 'Іван Котляревський', genre: 'Поезія', schoolClass: '9', price: 0 },
-            { title: 'Захар Беркут', author: 'Іван Франко', genre: 'Історична проза', schoolClass: '8-9', price: 0 },
-            { title: 'Лісова пісня', author: 'Леся Українка', genre: 'Драма', schoolClass: '10', price: 0 },
-            { title: 'Кайдашева сім’я', author: 'Іван Нечуй-Левицький', genre: 'Проза', schoolClass: '10', price: 0 },
-            { title: 'Тіні забутих предків', author: 'Михайло Коцюбинський', genre: 'Проза', schoolClass: '10', price: 0 },
-            { title: 'Intermezzo', author: 'Михайло Коцюбинський', genre: 'Проза', schoolClass: '11', price: 0 },
-            { title: 'Приклад: книжка про бізнес', author: 'Сучасний автор', genre: 'Бізнес', schoolClass: '', price: 199 },
-            { title: 'Приклад: сучасна проза', author: 'Український автор', genre: 'Проза', schoolClass: '', price: 249 }
-        ];
-
-        let shopFilter = 'all';
-        let schoolClassFilter = 'all';
-
-        function renderShopCatalog() {
-            const container = document.getElementById('catalog-container');
-            const recContainer = document.getElementById('recommendations-container');
-            const query = document.getElementById('shop-search-input').value.toLowerCase();
-
-            // Filter catalog
-            let filtered = defaultCatalog.filter(item => {
-                let matchQuery = item.title.toLowerCase().includes(query) || item.author.toLowerCase().includes(query);
-                if (!matchQuery) return false;
-
-                if (shopFilter === 'school') {
-                    if (!item.schoolClass) return false;
-                    if (schoolClassFilter !== 'all' && !item.schoolClass.includes(schoolClassFilter)) return false;
-                } else if (shopFilter === 'free' && item.price > 0) return false;
-                else if (shopFilter === 'paid' && item.price === 0) return false;
-
-                return true;
-            });
-
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><h3>Нічого не знайдено</h3></div>`;
-            } else {
-                container.innerHTML = '';
-                filtered.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'catalog-card';
-                    card.innerHTML = `
-                        <div>
-                            <h3>${item.title}</h3>
-                            <p>${item.author} · ${item.genre}</p>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                            <span style="font-weight:600;">${item.price === 0 ? 'Безкоштовно' : item.price + ' ₴'}</span>
-                            <button class="btn btn-primary" onclick="buyOrAddCatalogItem('${item.title}', ${item.price})">${item.price === 0 ? 'Додати' : 'Купити'}</button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            }
-
-            // Recommendations
-            if (!query) {
-                document.getElementById('recommendations-section').style.display = 'block';
-                recContainer.innerHTML = '';
-                defaultCatalog.slice(0, 3).forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'catalog-card';
-                    card.innerHTML = `
-                        <div>
-                            <h3>${item.title}</h3>
-                            <p>${item.author} · ${item.genre}</p>
-                        </div>
-                        <button class="btn btn-primary" style="margin-top:10px;" onclick="buyOrAddCatalogItem('${item.title}', 0)">Додати</button>
-                    `;
-                    recContainer.appendChild(card);
-                });
-            } else {
-                document.getElementById('recommendations-section').style.display = 'none';
-            }
-        }
-
-        function setShopFilter(filter, el) {
-            shopFilter = filter;
-            document.querySelectorAll('#shop-chips-container .chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
-            el.setAttribute('aria-pressed', 'true');
-
-            const subChips = document.getElementById('school-sub-chips');
-            if (filter === 'school') {
-                subChips.style.display = 'flex';
-            } else {
-                subChips.style.display = 'none';
-            }
-            renderShopCatalog();
-        }
-
-        function setSchoolClass(cls, el) {
-            schoolClassFilter = cls;
-            document.querySelectorAll('#school-sub-chips .chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
-            el.setAttribute('aria-pressed', 'true');
-            renderShopCatalog();
-        }
-
-        function filterShop() {
-            renderShopCatalog();
-        }
-
-        function buyOrAddCatalogItem(title, price) {
-            if (price > 0) {
-                showToast(`Купити · ${price} ₴ (майбутнє підключення оплати)`);
-            } else {
-                addBookSimple(title, `Це текст демо-книжки «${title}». Тут ви можете швидко та зручно тренувати швидкочитання, насолоджуючись текстом українською мовою.`);
-                showToast(`Книжку «${title}» додано до вашої бібліотеки`);
-                switchSection('sec-books');
-            }
-        }
-
-        async function searchInternet() {
-            const query = document.getElementById('shop-search-input').value.trim();
-            if (!query) return;
-
-            showToast('Шукаємо в інтернеті...');
-            const resultsSection = document.getElementById('internet-results-section');
-            const resultsContainer = document.getElementById('internet-results-container');
-            resultsSection.style.display = 'flex';
-            resultsContainer.innerHTML = '<div style="color:var(--mute)">Завантаження з джерел...</div>';
-
-            const p1 = fetch(`https://uk.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`).then(r => r.json()).catch(() => null);
-            const p2 = fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}`).then(r => r.json()).catch(() => null);
-            const p3 = fetch(`https://gutendex.com/books?search=${encodeURIComponent(query)}`).then(r => r.json()).catch(() => null);
-
-            const results = await Promise.allSettled([p1, p2, p3]);
-            resultsContainer.innerHTML = '';
-
-            let hasResults = false;
-
-            // Wikipedia results
-            if (results[0].status === 'fulfilled' && results[0].value && results[0].value.query) {
-                results[0].value.query.search.slice(0, 3).forEach(item => {
-                    hasResults = true;
-                    const card = document.createElement('div');
-                    card.className = 'catalog-card';
-                    card.innerHTML = `
-                        <div>
-                            <h3>Вікіджерела: ${escapeHtml(item.title)}</h3>
-                            <p>${escapeHtml(item.snippet.replace(/<\/?[^>]+(>|$)/g, ''))}</p>
-                        </div>
-                        <button class="btn btn-primary" style="margin-top:10px;" onclick="addWikiBook('${escapeHtml(item.title)}')">Додати</button>
-                    `;
-                    resultsContainer.appendChild(card);
-                });
-            }
-
-            // Gutendex results
-            if (results[2].status === 'fulfilled' && results[2].value && results[2].value.results) {
-                results[2].value.results.slice(0, 3).forEach(item => {
-                    hasResults = true;
-                    let epubUrl = item.formats['application/epub+zip'] || '#';
-                    const card = document.createElement('div');
-                    card.className = 'catalog-card';
-                    card.innerHTML = `
-                        <div>
-                            <h3>Gutenberg: ${escapeHtml(item.title)}</h3>
-                            <p>${item.authors.map(a => a.name).join(', ')}</p>
-                        </div>
-                        <a class="btn" href="${epubUrl}" target="_blank" rel="noopener noreferrer" style="margin-top:10px; text-decoration:none; text-align:center;">Завантажити</a>
-                    `;
-                    resultsContainer.appendChild(card);
-                });
-            }
-
-            // Open Library
-            if (results[1].status === 'fulfilled' && results[1].value && results[1].value.docs) {
-                results[1].value.docs.slice(0, 3).forEach(item => {
-                    hasResults = true;
-                    const card = document.createElement('div');
-                    card.className = 'catalog-card';
-                    card.innerHTML = `
-                        <div>
-                            <h3>Open Library: ${escapeHtml(item.title)}</h3>
-                            <p>${item.author_name ? item.author_name.join(', ') : ''}</p>
-                        </div>
-                        <a class="btn" href="https://openlibrary.org${item.key}" target="_blank" rel="noopener noreferrer" style="margin-top:10px; text-decoration:none; text-align:center;">Відкрити</a>
-                    `;
-                    resultsContainer.appendChild(card);
-                });
-            }
-
-            if (!hasResults) {
-                resultsContainer.innerHTML = `
-                    <div style="grid-column: 1/-1; display:flex; flex-direction:column; gap:10px; color:var(--mute);">
-                        <p>Не вдалося завантажити прямі результати через обмеження мережі (CSP).</p>
-                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                            <a class="btn" href="https://uk.wikisource.org" target="_blank" rel="noopener noreferrer">Вікіджерела</a>
-                            <a class="btn" href="https://www.gutenberg.org" target="_blank" rel="noopener noreferrer">Gutenberg</a>
-                            <a class="btn" href="https://openlibrary.org" target="_blank" rel="noopener noreferrer">Open Library</a>
-                            <a class="btn" href="https://archive.org" target="_blank" rel="noopener noreferrer">Internet Archive</a>
-                            <a class="btn" href="https://books.google.com.ua" target="_blank" rel="noopener noreferrer">Google Книги</a>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        async function addWikiBook(title) {
-            showToast(`Завантаження з Вікіпедії: ${title}`);
-            try {
-                const res = await fetch(`https://uk.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`);
-                const data = await res.json();
-                const pages = data.query.pages;
-                let text = '';
-                for (let k in pages) {
-                    if (pages[k].extract) text = pages[k].extract;
-                }
-                if (text) {
-                    addBookSimple(title, text);
-                    showToast(`Книжку додано успішно!`);
-                    switchSection('sec-books');
-                } else {
-                    showToast('Не вдалося отримати текст статті');
-                }
-            } catch (e) {
-                showToast('Помолка завантаження');
-            }
-        }
-
-        function escapeHtml(str) {
-            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-
-        /* --- Options & Theme --- */
-        function changeTheme(theme) {
-            state.theme = theme;
-            applyTheme(theme);
-            saveState();
-        }
-
-        function applyTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-
-        function changeSize(val) {
-            state.size = parseInt(val, 10);
-            applySize(state.size);
-            saveState();
-        }
-
-        function applySize(size) {
-            document.documentElement.style.setProperty('--s', size / 100);
-        }
-
-        function clearAllData() {
-            if (!confirm('Стерти всі дані та налаштування?')) return;
-            localStorage.clear();
-            const req = indexedDB.deleteDatabase('reader');
-            req.onsuccess = () => {
-                location.reload();
-            };
-            req.onerror = () => {
-                location.reload();
-            };
-        }
-    </script>
+      });
+    }
+
+    if(ws.status === 'fulfilled' && ws.value?.query?.search?.length){
+      h += '<h3>Знайдено у Вікіджерелах (Україна)</h3>';
+      ws.value.query.search.forEach(item => {
+        foundCount++;
+        h += `<div class="item">
+                <div><b>${esc(item.title)}</b><span class="muted">Українська література / Матеріали</span></div>
+                <button onclick="downloadWikiText('${item.pageid}', '${esc(item.title)}')">Завантажити в книжки</button>
+              </div>`;
+      });
+    }
+
+    if(foundCount === 0){
+      box.innerHTML = '<p class="muted" style="padding:10px">Книг за цим запитом не знайдено автоматично. Але ви можете додати їх вручну через кнопку «Додати» у розділі Книжки або вставити текст.</p>';
+    } else {
+      box.innerHTML = h;
+    }
+  } catch(err) {
+    box.innerHTML = '<p class="muted">Помилка мережі при пошуку. Перевірте підключення до інтернету.</p>';
+  }
+};
+
+$('q').addEventListener('keydown', e => { if(e.key==='Enter')$('web').click(); });
+
+// Автоматичне завантаження файлу книги за прямим посиланням і збереження в IndexedDB/Мої книжки
+async function downloadAndAddBook(url, title) {
+  toast('Завантажую книгу у фоні...');
+  try {
+    // Використовуємо CORS-проксі або прямий запит
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const file = new File([blob], title + (url.endsWith('.epub') ? '.epub' : '.txt'));
+    
+    const parsed = await readBook(file);
+    if(parsed){
+      const book = await addParsed(parsed.title || title, parsed.blocks);
+      if(book){
+        toast('Книгу успішно завантажено та додано!');
+        openBook(book.id);
+        go('read');
+      }
+    }
+  } catch(e) {
+    toast('Не вдалося завантажити файл безпосередньо. Спробуйте іншу книгу.');
+  }
+}
+
+// Завантаження тексту з Вікіджерел
+async function downloadWikiText(pageid, title) {
+  toast('Завантажую текст твору...');
+  try {
+    const d = await jget(`https://uk.wikisource.org/w/api.php?action=query&prop=extracts&explaintext=1&format=json&origin=*&pageids=${pageid}`);
+    const page = d.query.pages[pageid];
+    if(page && page.extract){
+      const bk = await addParsed(title, txtBlocks(page.extract));
+      if(bk){
+        toast('Книгу успішно додано до бібліотеки!');
+        openBook(bk.id);
+        go('read');
+      }
+    } else {
+      toast('Сторінка порожня');
+    }
+  } catch(e) {
+    toast('Помилка завантаження тексту');
+  }
+}
+
+/* налаштування */
+function applyLook(){
+  document.documentElement.dataset.theme = S.theme;
+  document.documentElement.style.setProperty('--s', S.size/100);
+}
+function renderOpt(){
+  document.querySelectorAll('[data-th]').forEach(b => b.setAttribute('aria-pressed', b.dataset.th===S.theme));
+  $('size').value = S.size; $('pause').checked = S.pause; $('pdfimg').checked = S.pdfImg !== false;
+}
+document.querySelectorAll('[data-th]').forEach(b => b.onclick = () => { S.theme = b.dataset.th; applyLook(); renderOpt(); save(); });
+$('size').oninput = e => { S.size = +e.target.value; applyLook(); save(); };$('pause').onchange = e => { S.pause = e.target.checked; save(); };
+$('pdfimg').onchange = e => { S.pdfImg = e.target.checked; save(); };$('wipe').onclick = () => { if(confirm('Стерти книжки та статистику?')){ try{ localStorage.removeItem('rsvp2'); }catch(e){} db().then(d => { d.close(); const q = indexedDB.deleteDatabase('reader'); q.onsuccess = q.onerror = q.onblocked = () => location.reload(); }).catch(() => location.reload()); } };
+
+/* старт */
+if(!S.books.length) S.books.push({id:'demo', title:'Як читати швидко', text:norm(SAMPLE), pos:0});
+$('wpm').value = S.wpm; applyLook();
+(async () => {
+  try { navigator.storage.persist(); } catch(e){}
+  await hydrate();
+  S.mode = S.mode || 'rsvp';
+  openBook(S.cur && cur() ? S.cur : S.books[0].id, true);
+  setMode(S.mode); go('read');
+})();
+</script>
 </body>
 </html>
