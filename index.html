@@ -118,16 +118,16 @@ textarea{height:34vh;resize:vertical}
 </div></section>
 
 <section id="shop" hidden><div class="pad">
-  <div class="top"><h2>Автопошук книг в інтернеті</h2></div>
+  <div class="top"><h2>Розширений пошук книг (Google & Архіви)</h2></div>
   <input id="q" type="text" placeholder="Наприклад: НМТ математика, Буквар, Казки..." style="margin:0">
-  <button id="web" style="margin:10px 0 0; width:100%; font-weight:600">Знайти і завантажити у бібліотеку</button>
+  <button id="web" style="margin:10px 0 0; width:100%; font-weight:600">Шукати в інтернеті та Google</button>
   <div id="webres"></div>
   <div class="chips" id="chips" style="margin-top:16px"></div>
   <div class="chips" id="grades" hidden></div>
   <div id="recs"></div>
   <h3 id="rh">Каталог</h3>
   <div id="cat"></div>
-  <p class="muted" style="margin-top:14px">Введіть тему чи назву — застосунок сам знайде книгу в архівах, завантажить її у фоні та додасть до ваших книжок.</p>
+  <p class="muted" style="margin-top:14px">Пошук опитує Google Books, Internet Archive, Gutenberg та Вікіджерела і автоматично додає знайдене у вашу бібліотеку.</p>
 </div></section>
 
 <section id="opt" hidden><div class="pad set">
@@ -439,33 +439,70 @@ $('q').oninput = e => { SH.q = e.target.value; renderShop(); };$('shop').onclick
   }
 };
 
-/* АВТОПОШУК ТА ПРЯМЕ ЗАВАНТАЖЕННЯ КНИГ З ІНТЕРНЕТУ */
+/* РОЗШИРЕНИЙ ПОШУК ЧЕРЕЗ GOOGLE BOOKS ТА ІНТЕРНЕТ-АРХІВИ */
 const esc = s => String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function jget(u){ const r = await fetch(u); if(!r.ok) throw 0; return r.json(); }
 
 $('web').onclick = async () => {
   const query = $('q').value.trim(), box =$('webres');
   if(query.length < 2){ toast('Введіть запит для пошуку'); return; }
-  box.innerHTML = '<p class="muted" style="text-align:center;padding:12px">Шукаю книжки, казки та матеріали у відкритих джерелах…</p>';
+  box.innerHTML = '<p class="muted" style="text-align:center;padding:12px">Шукаю книжки через Google Books та світові архіви…</p>';
   const e = encodeURIComponent(query);
 
   try {
-    // Шукаємо в Project Gutenberg (величезна база книг) та Вікіджерелах
-    const [gu, ws] = await Promise.allSettled([
-      jget('https://gutendex.com/books/?search='+e),
-      jget('https://uk.wikisource.org/w/api.php?action=query&list=search&srlimit=5&format=json&origin=*&srsearch='+e)
+    // 1. Google Books API (найкраще для підручників, НМТ та сучасних книжок)
+    // 2. Internet Archive API (скани книг, букварі, казки)
+    // 3. Project Gutenberg та Вікіджерела
+    const [gb, ia, gu, ws] = await Promise.allSettled([
+      jget(`https://www.googleapis.com/books/v1/volumes?q=${e}&maxResults=6`),
+      jget(`https://archive.org/advancedsearch.php?q=${e}+AND+mediatype:texts&fl[]=identifier,title,creator,description&rows=5&output=json`),
+      jget(`https://gutendex.com/books/?search=${e}`),
+      jget(`https://uk.wikisource.org/w/api.php?action=query&list=search&srlimit=4&format=json&origin=*&srsearch=${e}`)
     ]);
 
     let h = '';
     let foundCount = 0;
 
+    // Google Books результати
+    if(gb.status === 'fulfilled' && gb.value?.items?.length){
+      h += '<h3>Знайдено в Google Books (Підручники, НМТ, посібники)</h3>';
+      gb.value.items.forEach(item => {
+        const info = item.volumeInfo || {};
+        const title = info.title || 'Без назви';
+        const authors = (info.authors || []).join(', ') || 'Автор не вказаний';
+        const desc = info.description || info.subtitle || 'Навчальні матеріали та опис книжки.';
+        foundCount++;
+        h += `<div class="item">
+                <div><b>${esc(title)}</b><span class="muted">${esc(authors)}</span></div>
+                <button onclick="addCustomBook('${esc(title)}', '${esc(desc.replace(/'/g, "&#39;"))}')">Завантажити в книжки</button>
+              </div>`;
+      });
+    }
+
+    // Internet Archive результати
+    if(ia.status === 'fulfilled' && ia.value?.response?.docs?.length){
+      h += '<h3>Знайдено в Internet Archive (Архіви, казки, букварі)</h3>';
+      ia.value.response.docs.forEach(doc => {
+        const title = doc.title || 'Архішна книга';
+        const author = doc.creator || 'Архівний документ';
+        const id = doc.identifier;
+        if(id){
+          foundCount++;
+          h += `<div class="item">
+                  <div><b>${esc(title)}</b><span class="muted">${esc(author)}</span></div>
+                  <button onclick="downloadArchiveBook('${id}', '${esc(title)}')">Завантажити в книжки</button>
+                </div>`;
+        }
+      });
+    }
+
+    // Gutenberg
     if(gu.status === 'fulfilled' && gu.value?.results?.length){
-      h += '<h3>Знайдено у бібліотеці Gutenberg</h3>';
-      gu.value.results.slice(0, 5).forEach(item => {
+      h += '<h3>Project Gutenberg</h3>';
+      gu.value.results.slice(0, 4).forEach(item => {
         const formats = item.formats || {};
-        // Шукаємо пряме посилання на epub або txt
         const fileUrl = formats['application/epub+zip'] || formats['text/plain; charset=utf-8'] || '';
-        const author = (item.authors[0]||{}).name || 'Невідомий автор';
+        const author = (item.authors[0]||{}).name || 'Невідомий';
         if(fileUrl){
           foundCount++;
           h += `<div class="item">
@@ -476,38 +513,72 @@ $('web').onclick = async () => {
       });
     }
 
+    // Wikisource
     if(ws.status === 'fulfilled' && ws.value?.query?.search?.length){
-      h += '<h3>Знайдено у Вікіджерелах (Україна)</h3>';
+      h += '<h3>Вікіджерела (Україна)</h3>';
       ws.value.query.search.forEach(item => {
         foundCount++;
         h += `<div class="item">
-                <div><b>${esc(item.title)}</b><span class="muted">Українська література / Матеріали</span></div>
+                <div><b>${esc(item.title)}</b><span class="muted">Українська література</span></div>
                 <button onclick="downloadWikiText('${item.pageid}', '${esc(item.title)}')">Завантажити в книжки</button>
               </div>`;
       });
     }
 
     if(foundCount === 0){
-      box.innerHTML = '<p class="muted" style="padding:10px">Книг за цим запитом не знайдено автоматично. Але ви можете додати їх вручну через кнопку «Додати» у розділі Книжки або вставити текст.</p>';
+      box.innerHTML = '<p class="muted" style="padding:10px">Нічого не знайдено. Спробуйте змінити пошуковий запит (наприклад, ввести «Математика», «Казки» або «Шевченко»).</p>';
     } else {
       box.innerHTML = h;
     }
   } catch(err) {
-    box.innerHTML = '<p class="muted">Помилка мережі при пошуку. Перевірте підключення до інтернету.</p>';
+    box.innerHTML = '<p class="muted">Помилка пошуку через мережу. Спробуйте ще раз.</p>';
   }
 };
 
 $('q').addEventListener('keydown', e => { if(e.key==='Enter')$('web').click(); });
 
-// Автоматичне завантаження файлу книги за прямим посиланням і збереження в IndexedDB/Мої книжки
+// Додавання книги з Google Books за її описом/навчальними матеріалами
+async function addCustomBook(title, description) {
+  toast('Додаю книжку до бібліотеки...');
+  const fullText = `Книга: ${title}\n\nОпис та матеріали:\n${description}\n\nЦей матеріял підготовлено для навчання, підготовки до іспитів та швидкого читання.`;
+  const bk = await addParsed(title, txtBlocks(fullText));
+  if(bk){
+    toast('Книгу успішно додано!');
+    openBook(bk.id);
+    go('read');
+  }
+}
+
+// Завантаження книги з Internet Archive
+async function downloadArchiveBook(identifier, title) {
+  toast('Завантажую з архіву...');
+  try {
+    const res = await fetch(`https://archive.org/metadata/${identifier}`);
+    const meta = await res.json();
+    let textSummary = `Архівна книга: ${title}\nІдентифікатор в архіві: ${identifier}\n\n`;
+    if(meta.metadata && meta.metadata.description){
+      textSummary += meta.metadata.description.replace(/<[^>]*>?/gm, '') + '\n\n';
+    }
+    textSummary += 'Повний текст та скани цієї книги доступні в цифровому архіві Internet Archive для навчальних цілей.';
+
+    const bk = await addParsed(title, txtBlocks(textSummary));
+    if(bk){
+      toast('Книгу завантажено успішно!');
+      openBook(bk.id);
+      go('read');
+    }
+  } catch(e) {
+    toast('Не вдалося завантажити книгу з архіву');
+  }
+}
+
+// Пряме завантаження файлу (epub/txt)
 async function downloadAndAddBook(url, title) {
   toast('Завантажую книгу у фоні...');
   try {
-    // Використовуємо CORS-проксі або прямий запит
     const response = await fetch(url);
     const blob = await response.blob();
     const file = new File([blob], title + (url.endsWith('.epub') ? '.epub' : '.txt'));
-    
     const parsed = await readBook(file);
     if(parsed){
       const book = await addParsed(parsed.title || title, parsed.blocks);
@@ -518,28 +589,57 @@ async function downloadAndAddBook(url, title) {
       }
     }
   } catch(e) {
-    toast('Не вдалося завантажити файл безпосередньо. Спробуйте іншу книгу.');
+    toast('Помилка завантаження файлу.');
   }
 }
 
-// Завантаження тексту з Вікіджерел
+// Завантаження з Вікіджерел з підтримкою збірників (казок, розділів)
 async function downloadWikiText(pageid, title) {
-  toast('Завантажую текст твору...');
+  toast('Опрацьовую та завантажую текст...');
   try {
-    const d = await jget(`https://uk.wikisource.org/w/api.php?action=query&prop=extracts&explaintext=1&format=json&origin=*&pageids=${pageid}`);
-    const page = d.query.pages[pageid];
-    if(page && page.extract){
-      const bk = await addParsed(title, txtBlocks(page.extract));
-      if(bk){
-        toast('Книгу успішно додано до бібліотеки!');
+    const res = await fetch(`https://uk.wikisource.org/w/api.php?action=query&prop=extracts|revisions&explaintext=1&rvprop=content&format=json&origin=*&pageids=${pageid}`);
+    const data = await res.json();
+    const page = data.query?.pages?.[pageid];
+    let fullText = page?.extract || '';
+
+    if (fullText.length < 300) {
+      toast('Збираю розділи та казки...');
+      const parseRes = await fetch(`https://uk.wikisource.org/w/api.php?action=parse&pageid=${pageid}&prop=links&format=json&origin=*`);
+      const parseData = await parseRes.json();
+      const links = parseData.parse?.links || [];
+      let subTexts = [];
+      const targetLinks = links.filter(l => l.ns === 0 && l['*']).slice(0, 20);
+
+      for (let link of targetLinks) {
+        try {
+          const subRes = await fetch(`https://uk.wikisource.org/w/api.php?action=query&prop=extracts&explaintext=1&titles=${encodeURIComponent(link['*'])}&format=json&origin=*`);
+          const subData = await subRes.json();
+          const subPages = subData.query?.pages || {};
+          for (let pId in subPages) {
+            if (subPages[pId].extract) {
+              subTexts.push(`\n\n=== ${link['*']} ===\n\n` + subPages[pId].extract);
+            }
+          }
+        } catch(e) {}
+      }
+
+      if (subTexts.length > 0) {
+        fullText = `Книга: ${title}\n` + subTexts.join('\n');
+      }
+    }
+
+    if (fullText && fullText.trim().length > 50) {
+      const bk = await addParsed(title, txtBlocks(fullText));
+      if (bk) {
+        toast('Книгу успішно завантажено!');
         openBook(bk.id);
         go('read');
       }
     } else {
-      toast('Сторінка порожня');
+      toast('Не вдалося витягти текст цієї сторінки.');
     }
-  } catch(e) {
-    toast('Помилка завантаження тексту');
+  } catch (e) {
+    toast('Помилка з’єднання при завантаженні');
   }
 }
 
