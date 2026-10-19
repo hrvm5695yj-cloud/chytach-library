@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Читач</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:wght@400;600&display=swap">
+<style>
+:root{--bg:#eadfc8;--fg:#3a3226;--mute:#85796a;--line:#d3c6ab;--anchor:#b8262e;--panel:#e0d3b8;--s:1;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1d2127;--fg:#d8d5ca;--mute:#8b9097;--line:#343a42;--anchor:#ef4a52;--panel:#262b32}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+.app{flex:1;min-height:0;display:flex;flex-direction:column}
+section{flex:1;min-height:0;display:flex;flex-direction:column}
+button,label.btn{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;min-height:44px}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--anchor);outline-offset:2px}
+h2{font:600 22px Literata,Georgia,serif;margin:0}
+.pad{padding:16px;overflow:auto;max-width:640px;width:100%;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:16px}
+.muted{color:var(--mute);font-size:14px}
+/* nav */
+nav{display:flex;border-top:1px solid var(--line);background:var(--bg)}
+nav .brand{display:none}
+nav button{flex:1;background:none;border:0;border-radius:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--mute);padding:8px 4px}
+nav button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button[aria-current=true]{color:var(--anchor);font-weight:600}
+@media (min-width:800px){
+ body{flex-direction:row-reverse}
+ nav{flex-direction:column;width:210px;border-top:0;border-right:1px solid var(--line);padding:20px 10px;gap:4px;justify-content:flex-start}
+ nav .brand{display:block;font:600 22px Literata,Georgia,serif;padding:0 12px 18px}
+ nav button{flex:none;flex-direction:row;gap:12px;font-size:16px;justify-content:flex-start;padding:10px 12px;border-radius:10px}
+ nav button[aria-current=true]{background:var(--panel)}
+}
+/* reader */
+#read .head{padding:12px 16px;text-align:center}
+#read .head b{display:block;font-weight:600}
+main{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;cursor:pointer;position:relative}
+.word{display:grid;grid-template-columns:1fr auto 1fr;width:100%;font-family:Literata,Georgia,serif;font-size:calc(clamp(34px,10vw,64px)*var(--s));line-height:1;white-space:pre}
+.word .l{text-align:right}.word .c{color:var(--anchor);font-weight:600}
+.guide{position:absolute;left:50%;width:1px;height:18px;background:var(--line)}
+.guide.t{top:calc(50% - 56px)}.guide.b{top:calc(50% + 38px)}
+.hint{position:absolute;bottom:10px}
+.foot{padding:8px 16px 16px;max-width:640px;width:100%;margin:0 auto}
+.bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;width:0;background:var(--anchor)}
+.meta{display:flex;justify-content:space-between;margin-bottom:12px}
+.ctl{display:flex;align-items:center;gap:8px}
+.ctl input[type=range],.set input[type=range]{flex:1;accent-color:var(--anchor)}
+#play{min-width:92px;font-weight:600}
+/* books */
+.book{display:block;width:100%;text-align:left;margin-bottom:10px;padding:14px}
+.book .t{display:flex;justify-content:space-between;gap:8px;font-weight:600}
+.book .bar{margin:10px 0 4px}
+.book .x{background:none;border:0;padding:0 4px;min-height:0;color:var(--mute)}
+/* stats */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card b{display:block;font:600 26px Literata,Georgia,serif}
+.chart{display:flex;align-items:flex-end;gap:8px;height:120px}
+.chart div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px;font-size:12px;color:var(--mute)}
+.chart i{display:block;width:100%;background:var(--anchor);border-radius:4px 4px 0 0;min-height:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.chips button{padding:6px 12px;min-height:36px;border-radius:18px}.chips button[aria-pressed=true]{border-color:var(--anchor);color:var(--anchor);font-weight:600}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.item b{display:block}.item button{white-space:nowrap}
+h3{font:600 16px system-ui,sans-serif;margin:18px 0 4px}
+#pic{max-width:92%;max-height:72%;object-fit:contain;border-radius:8px;background:#fff}
+#page{display:none;flex:1;overflow:auto;position:relative;padding:16px;max-width:680px;width:100%;margin:0 auto;font:calc(18px*var(--s))/1.65 Literata,Georgia,serif}
+#page p{margin:0 0 1em}#page img{max-width:100%;display:block;margin:12px auto;background:#fff;border-radius:6px}#page>button{display:block;margin:0 auto 14px}
+#read.pg #page{display:block}#read.pg main,#read.pg .ctl{display:none}
+/* settings */
+.set{display:flex;flex-direction:column;gap:18px}
+.set .r{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.seg{display:flex;gap:6px}.seg button[aria-pressed=true]{border-color:var(--anchor);font-weight:600}
+dialog{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;width:min(92vw,560px);padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+input[type=text],textarea{width:100%;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;font:15px system-ui,sans-serif;margin-bottom:10px}
+textarea{height:34vh;resize:vertical}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section id="read">
+  <div class="head"><b id="title">Читач</b><span class="muted" id="left"></span><div class="chips" style="justify-content:center;margin:8px 0 0"><button data-m="rsvp">Швидко</button><button data-m="page">Сторінка</button></div></div>
+  <main id="stage">
+    <div class="guide t"></div><div class="guide b"></div>
+    <div class="word" id="word"><span class="l"></span><span class="c">Т</span><span class="r">ак</span></div>
+    <div class="hint muted" id="hint">Торкніться екрана, щоб почати</div>
+    <img id="pic" alt="" hidden>
+  </main>
+  <div id="page"></div>
+  <div class="foot">
+    <div class="bar"><i id="fill"></i></div>
+    <div class="meta muted"><span id="pos"></span><span id="wpmv"></span></div>
+    <div class="ctl">
+      <button id="back" aria-label="Назад на 10 слів">−10</button>
+      <button id="play">Старт</button>
+      <button id="fwd" aria-label="Вперед на 10 слів">+10</button>
+      <input id="wpm" type="range" min="100" max="900" step="25" aria-label="Швидкість">
+    </div>
+  </div>
+</section>
+
+<section id="lib" hidden><div class="pad">
+  <div class="top"><h2>Мої книжки</h2><button id="add">Додати</button></div>
+  <div id="books"></div>
+</div></section>
+
+<section id="stat" hidden><div class="pad">
+  <div class="top"><h2>Прогрес</h2></div>
+  <div class="grid" id="cards"></div>
+  <div class="muted" style="margin-bottom:8px">Слів за останні 7 днів</div>
+  <div class="chart" id="chart"></div>
+</div></section>
+
+<section id="shop" hidden><div class="pad">
+  <div class="top"><h2>Магазин</h2></div>
+  <input id="q" type="text" placeholder="Знайти книжку або автора" style="margin:0">
+  <button id="web" style="margin:10px 0 0">Знайти книжку для читання</button>
+  <div id="webres"></div>
+  <div class="chips" id="chips"></div>
+  <div class="chips" id="grades" hidden></div>
+  <div id="recs"></div>
+  <h3 id="rh">Каталог</h3>
+  <div id="cat"></div>
+  <p class="muted">Пошук шукає повні тексти у відкритих бібліотеках. Доступність залежить від джерела; захищені авторським правом книжки можуть бути недоступні безкоштовно.</p>
+</div></section>
+
+<section id="opt" hidden><div class="pad set">
+  <div class="top"><h2>Налаштування</h2></div>
+  <div class="r"><span>Тема</span><div class="seg"><button data-th="beige">Бежева</button><button data-th="dark">Темна</button></div></div>
+  <div class="r"><span>Розмір слова</span><input id="size" type="range" min="70" max="140" step="10"></div>
+  <div class="r"><span>Довші паузи після розділових знаків</span><input id="pause" type="checkbox" style="width:22px;height:22px;accent-color:var(--anchor)"></div>
+  <div class="r"><span>PDF як картинки сторінок (формули, малюнки)</span><input id="pdfimg" type="checkbox" style="width:22px;height:22px;accent-color:var(--anchor)"></div>
+  <button id="wipe">Стерти всі дані</button>
+</div></section>
+
+</div>
+
+<nav id="nav" aria-label="Розділи">
+  <div class="brand">Читач</div>
+  <button data-v="read"><svg viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg><span>Читати</span></button>
+  <button data-v="lib"><svg viewBox="0 0 24 24"><path d="M4 3v18M9 3v18M14.5 5.5l5 15"/></svg><span>Книжки</span></button>
+  <button data-v="shop"><svg viewBox="0 0 24 24"><path d="M4 8h16l-1.5 12h-13zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Магазин</span></button>
+  <button data-v="stat"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Прогрес</span></button>
+  <button data-v="opt"><svg viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/></svg><span>Опції</span></button>
+</nav>
+
+<dialog id="dlg">
+  <input id="ttl" type="text" placeholder="Назва книжки">
+  <textarea id="txt" placeholder="Вставте текст сюди"></textarea>
+  <div style="display:flex;justify-content:space-between;gap:8px">
+    <label class="btn">Файли: fb2, epub, pdf, txt, zip<input id="file" type="file" accept=".txt,.fb2,.epub,.pdf,.zip" multiple hidden></label>
+    <div style="display:flex;gap:8px"><button id="cancel">Скасувати</button><button id="ok" style="font-weight:600">Додати</button></div>
+  </div>
+</dialog>
+<div id="toast" hidden></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const SAMPLE = "Швидке читання працює просто: очі не біжать по рядках, а дивляться в одну точку. Слова змінюють одне одного по центру, а червона літера допомагає погляду не губитися. Так мозок витрачає менше сил на пошук наступного рядка. Почніть із повільної швидкості, а потім додавайте по двадцять п’ять слів за хвилину, поки не знайдете свій комфортний темп.";
+const D = {books:[],cur:null,wpm:300,size:100,theme:'beige',pause:true,days:{}};
+let S; try { S = {...D, ...JSON.parse(localStorage.getItem('rsvp2')||'{}')}; } catch(e){ S = {...D}; }
+let words = [], i = 0, playing = false, timer = null;
+const today = () => new Date().toLocaleDateString('sv');
+let idbOK = true;
+function save(){ try { localStorage.setItem('rsvp2', JSON.stringify(S, (k,v) => idbOK && (k==='text'||k==='par'||k==='im') ? undefined : v)); } catch(e){ toast('Немає місця в пам’яті браузера'); } }
+function toast(t){ const e=$('toast'); e.textContent=t; e.hidden=false; setTimeout(()=>e.hidden=true,2500); }
+const cur = () => S.books.find(b => b.id === S.cur);
+const norm = t => t.replace(/\s+/g,' ').trim();
+
+/* навігація */
+function go(v){
+  if(v!=='read') stop();
+  ['read','lib','shop','stat','opt'].forEach(s => $(s).hidden = s!==v);
+  document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-current', b.dataset.v===v));
+  if(v==='read' && S.mode==='page') renderPage(); if(v==='shop') renderShop(); if(v==='lib') renderBooks(); if(v==='stat') renderStats(); if(v==='opt') renderOpt();
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => go(b.dataset.v));
+
+/* читалка */
+function pivot(w){
+  const m = w.match(/^([^\p{L}\p{N}]*)(.*?)([^\p{L}\p{N}]*)$/u), n = m[2].length;
+  return Math.min(w.length-1, m[1].length + (n<=1?0:n<=5?1:n<=9?2:n<=13?3:4));
+}
+function show(){
+  const b = cur(); if(!b || !words.length) return;
+  const w = words[i], p = pivot(w), el = $('word'), k = b.im && b.im[i];
+  el.hidden = !!k; $('pic').hidden = !k;
+  if(k){ if(S.mode!=='page'){ getImg(b.id,k).then(u => { if(b.im[i]===k) $('pic').src = u || ''; }); if(playing) stop(); } }
+  else { el.children[0].textContent = w.slice(0,p); el.children[1].textContent = w[p]; el.children[2].textContent = w.slice(p+1); }
+  const n = words.length, mins = (n-i-1) / S.wpm;
+  $('pos').textContent = (i+1) + ' / ' + n;
+  $('fill').style.width = (n>1 ? i/(n-1)*100 : 100) + '%';
+  $('left').textContent = mins < 1 ? 'менше хвилини до кінця' : 'ще ~' + Math.round(mins) + ' хв';
+  $('wpmv').textContent = S.wpm + ' сл/хв';
+  b.pos = i;
+}
+function openBook(id, silent){
+  const b = S.books.find(x => x.id===id); if(!b) return;
+  stop(); S.cur = id; words = b.text.split(' '); i = Math.min(b.pos||0, words.length-1);
+  $('title').textContent = b.title; show(); save(); if(!silent) go('read');
+}
+function delay(w){
+  let d = 60000 / S.wpm;
+  if(S.pause){
+    if(/[.!?…]["»”’)]*$/.test(w)) d *= 2.2; else if(/[,;:–—]["»”’)]*$/.test(w)) d *= 1.5;
+    if(w.length > 9) d *= 1.3;
+  }
+  return d;
+}
+function tick(){
+  if(!playing) return;
+  if(i >= words.length-1){ stop(); return; }
+  i++; show(); S.days[today()] = (S.days[today()]||0) + 1;
+  if(i % 25 === 0) save();
+  timer = setTimeout(tick, delay(words[i]));
+}
+function start(){
+  if(!words.length) return;
+  if(i >= words.length-1) i = 0;
+  if(cur().im && cur().im[i] && i < words.length-1) i++;
+  playing = true; $('play').textContent = 'Пауза'; $('hint').hidden = true;
+  show(); timer = setTimeout(tick, delay(words[i]));
+}
+function stop(){ const was = playing; playing = false; clearTimeout(timer); $('play').textContent = 'Старт'; if(was) save(); }
+const toggle = () => playing ? stop() : start();
+const jump = d => { i = Math.max(0, Math.min(words.length-1, i+d)); show(); save(); };
+$('play').onclick = toggle; $('stage').onclick = toggle;
+$('back').onclick = () => jump(-10); $('fwd').onclick = () => jump(10);
+$('wpm').oninput = e => { S.wpm = +e.target.value; show(); save(); };
+document.addEventListener('keydown', e => {
+  if(e.target.matches('textarea,input') || $('read').hidden) return;
+  if(e.code==='Space'){ e.preventDefault(); toggle(); }
+  if(e.code==='ArrowLeft') jump(-10); if(e.code==='ArrowRight') jump(10);
+});
+
+/* книжки */
+function renderBooks(){
+  const box = $('books'); box.innerHTML = '';
+  if(!S.books.length){ box.innerHTML = '<p class="muted">Тут поки порожньо. Натисніть «Додати» і вставте текст або завантажте файл.</p>'; return; }
+  S.books.forEach(b => {
+    const n = b.text.split(' ').length, pr = n>1 ? Math.round((b.pos||0)/(n-1)*100) : 0;
+    const d = document.createElement('div');
+    d.innerHTML = `<button class="book"><span class="t"><span></span><span class="x" role="button" aria-label="Видалити">✕</span></span><div class="bar"><i style="width:${pr}%"></i></div><span class="muted">${pr}% · ${n} слів</span></button>`;
+    const btn = d.firstChild; btn.querySelector('.t span').textContent = b.title;
+    btn.onclick = () => openBook(b.id);
+    btn.querySelector('.x').onclick = e => { e.stopPropagation(); if(confirm('Видалити «'+b.title+'»?')){ S.books = S.books.filter(x=>x.id!==b.id); delBody(b.id); if(S.cur===b.id){ S.cur=null; words=[]; if(S.books[0]) openBook(S.books[0].id,true); } save(); renderBooks(); } };
+    box.appendChild(btn);
+  });
+}
+$('add').onclick = () => { $('ttl').value=''; $('txt').value=''; $('dlg').showModal(); };
+$('cancel').onclick = () => $('dlg').close();
+/* сховище IndexedDB */
+let _db; const IC = new Map();
+const db = () => _db || (_db = new Promise((res,rej) => { const r = indexedDB.open('reader',1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+async function idbGet(k){ try { const d = await db(); return await new Promise((res,rej) => { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); } catch(e){ return undefined; } }
+async function idbSet(k,v){ try { const d = await db(); await new Promise((res,rej) => { const t = d.transaction('kv','readwrite'); t.objectStore('kv').put(v,k); t.oncomplete = res; t.onerror = () => rej(t.error); }); } catch(e){ idbOK = false; toast('Не вдалося зберегти книжку на пристрої'); } }
+async function idbDel(lo,hi){ try { const d = await db(); d.transaction('kv','readwrite').objectStore('kv').delete(IDBKeyRange.bound(lo,hi)); } catch(e){} }
+const putBody = b => idbSet('b:'+b.id, {text:b.text, par:b.par, im:b.im});
+const delBody = id => { idbDel('b:'+id,'b:'+id); idbDel('i:'+id+':','i:'+id+':\uffff'); };
+async function getImg(id,k){ const key = id+':'+k; if(!IC.has(key)) IC.set(key, await idbGet('i:'+key)); return IC.get(key); }
+async function hydrate(){
+  for(const b of S.books){
+    if(b.text) await putBody(b);
+    else { const d = await idbGet('b:'+b.id); if(d){ b.text = d.text; b.par = d.par; b.im = d.im; } else b.text = 'Текст не знайдено.'; }
+  }
+}
+
+/* імпорт книжок */
+function txtBlocks(t){ return t.split(/\n+/).map(norm).filter(Boolean).map(s => ({p:s})); }
+function dec(buf){
+  let t = new TextDecoder('utf-8').decode(buf);
+  const m = t.slice(0,300).match(/encoding=["']([^"']+)["']/i);
+  if(m && !/utf-?8/i.test(m[1])){ try { t = new TextDecoder(m[1]).decode(buf); } catch(e){} }
+  else if(t.includes('\ufffd')) t = new TextDecoder('windows-1251').decode(buf);
+  return t;
+}
+function fb2(t){
+  const d = new DOMParser().parseFromString(t,'text/xml'), bin = {}, out = [];
+  d.querySelectorAll('binary').forEach(x => bin[x.getAttribute('id')] = 'data:'+(x.getAttribute('content-type')||'image/jpeg')+';base64,'+x.textContent.replace(/\s+/g,''));
+  d.querySelectorAll('body p, body image').forEach(el => {
+    if(el.localName==='image'){ const a = [...el.attributes].find(a => a.name.endsWith('href')); const u = a && bin[a.value.replace('#','')]; if(u) out.push({img:u}); }
+    else { const s = norm(el.textContent); if(s) out.push({p:s}); }
+  });
+  return {title: norm((d.querySelector('book-title')||{}).textContent || 'Без назви'), blocks: out};
+}
+async function epub(buf){
+  const z = await JSZip.loadAsync(buf), rd = async p => z.file(p) ? z.file(p).async('string') : '', P = s => new DOMParser().parseFromString(s,'text/xml');
+  const opfPath = P(await rd('META-INF/container.xml')).querySelector('rootfile').getAttribute('full-path');
+  const opf = P(await rd(opfPath)), base = opfPath.replace(/[^/]*$/,''), man = {}, out = [];
+  opf.querySelectorAll('manifest item').forEach(x => man[x.getAttribute('id')] = x.getAttribute('href'));
+  for(const r of opf.querySelectorAll('spine itemref')){
+    const href = man[r.getAttribute('idref')]; if(!href) continue;
+    const path = decodeURIComponent(new URL(base+href,'http://x/').pathname.slice(1));
+    const doc = new DOMParser().parseFromString(await rd(path),'text/html');
+    for(const el of doc.body.querySelectorAll('p,h1,h2,h3,h4,h5,h6,li,img')){
+      if(el.tagName==='IMG'){
+        const src = el.getAttribute('src'); if(!src) continue;
+        if(src.startsWith('data:')){ out.push({img:src}); continue; }
+        const ip = decodeURIComponent(new URL(src,'http://x/'+path).pathname.slice(1)), f = z.file(ip);
+        if(f){ const mime = {svg:'image/svg+xml',png:'image/png',gif:'image/gif',webp:'image/webp'}[ip.split('.').pop().toLowerCase()] || 'image/jpeg'; out.push({img:'data:'+mime+';base64,'+await f.async('base64')}); }
+      } else if(!(el.tagName==='LI' && el.querySelector('p'))){ const s = norm(el.textContent); if(s) out.push({p:s}); }
+    }
+  }
+  return {title: norm((opf.querySelector('title')||{}).textContent || 'Без назви'), blocks: out};
+}
+async function pdfBook(buf, name){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise, asImg = S.pdfImg !== false, out = [];
+  for(let n = 1; n <= pdf.numPages; n++){
+    const pg = await pdf.getPage(n);
+    if(asImg){ const vp = pg.getViewport({scale:1.6}), c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; await pg.render({canvasContext:c.getContext('2d'), viewport:vp}).promise; out.push({img:c.toDataURL('image/jpeg',0.82)}); }
+    else { const t = norm((await pg.getTextContent()).items.map(x => x.str).join(' ')); if(t) out.push({p:t}); }
+    if(n % 10 === 0) toast('PDF: '+n+' / '+pdf.numPages);
+  }
+  return {title: name.replace(/\.[^.]+$/,''), blocks: out, pageMode: asImg};
+}
+async function readBook(f){
+  const name = f.name || '', buf = await f.arrayBuffer();
+  if(/\.epub$/i.test(name)) return epub(buf);
+  if(/\.pdf$/i.test(name)) return pdfBook(buf, name);
+  if(/\.fb2$/i.test(name)) return fb2(dec(buf));
+  if(/\.txt$/i.test(name)) return {title: name.replace(/\.[^.]+$/,''), blocks: txtBlocks(dec(buf))};
+}
+async function unzip(f){
+  const z = await JSZip.loadAsync(f), out = [];
+  for(const e of Object.values(z.files)) if(!e.dir && /\.(fb2|epub|txt)$/i.test(e.name)){ const bl = await e.async('blob'); bl.name = e.name.split('/').pop(); out.push(bl); }
+  return out;
+}
+async function addParsed(title, blocks){
+  if(!blocks.length) return null;
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5), W = [], Pr = [], im = {};
+  for(const b of blocks){
+    Pr.push(W.length);
+    if(b.img){ const k = 'k'+W.length; im[W.length] = k; await idbSet('i:'+id+':'+k, b.img); W.push('▣'); }
+    else W.push(...b.p.split(' '));
+  }
+  const book = {id, title, text: W.join(' '), par: Pr, im, pos: 0};
+  S.books.unshift(book); await putBody(book); save(); return book;
+}
+$('file').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = ''; $('dlg').close(); let n = 0;
+  for(const f of files){
+    toast('Імпорт: '+f.name);
+    try { for(const it of /\.zip$/i.test(f.name) ? await unzip(f) : [f]){ const r = await readBook(it), b = r && await addParsed(r.title, r.blocks); if(b){ n++; if(r.pageMode){ openBook(b.id); setMode('page'); } } } }
+    catch(err){ toast('Не вдалося прочитати '+f.name); }
+  }
+  if(n){ toast('Додано книжок: '+n); renderBooks(); }
+};
+
+/* режими читання */
+const parOf = b => { if(!b.par){ b.par = []; for(let k=0; k<words.length; k+=60) b.par.push(k); } return b.par; };
+let pgFrom = 0, pgTo = 0, tk = 0, sv;
+function mkPar(b,P,q){
+  const s = P[q], e = P[q+1] ?? words.length, el = document.createElement('p'); el.dataset.s = s;
+  if(b.im && b.im[s]){ const im = document.createElement('img'); im.alt = ''; getImg(b.id,b.im[s]).then(u => im.src = u || ''); el.appendChild(im); }
+  else el.textContent = words.slice(s,e).join(' ');
+  return el;
+}
+function renderPage(from){
+  const b = cur(); if(!b) return; const P = parOf(b), pg = $('page');
+  let k = 0; while(k+1 < P.length && P[k+1] <= i) k++;
+  pgFrom = from ?? Math.max(0,k-2); pgTo = Math.min(P.length, pgFrom+40); pg.textContent = '';
+  if(pgFrom > 0){ const u = document.createElement('button'); u.textContent = 'Раніше'; u.onclick = () => renderPage(Math.max(0,pgFrom-30)); pg.appendChild(u); }
+  for(let q = pgFrom; q < pgTo; q++) pg.appendChild(mkPar(b,P,q));
+  const t = [...pg.children].find(c => c.dataset.s !== undefined && +c.dataset.s === P[k]);
+  pg.scrollTop = t ? t.offsetTop-4 : 0;
+}
+$('page').onscroll = () => { if(tk) return; tk = requestAnimationFrame(() => {
+  tk = 0; const pg = $('page'), b = cur(); if(!b) return;
+  for(const el of pg.children) if(el.dataset.s !== undefined && el.offsetTop+el.offsetHeight > pg.scrollTop+4){
+    const old = i; i = +el.dataset.s; if(i > old && i-old < 1500) S.days[today()] = (S.days[today()]||0) + (i-old); show(); break;
+  }
+  const P = parOf(b);
+  if(pg.scrollTop+pg.clientHeight > pg.scrollHeight-300 && pgTo < P.length){ const to = Math.min(P.length, pgTo+30); for(let q = pgTo; q < to; q++) pg.appendChild(mkPar(b,P,q)); pgTo = to; }
+  clearTimeout(sv); sv = setTimeout(save, 800);
+}); };
+function setMode(m){
+  S.mode = m; stop(); $('read').classList.toggle('pg', m==='page');
+  document.querySelectorAll('[data-m]').forEach(b => b.setAttribute('aria-pressed', b.dataset.m===m));
+  if(m==='page') renderPage(); else show(); save();
+}
+document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => setMode(b.dataset.m));
+$('ok').onclick = async () => {
+  const bl = txtBlocks($('txt').value); $('dlg').close(); if(!bl.length) return;
+  const b = await addParsed($('ttl').value.trim() || 'Без назви', bl); if(b) openBook(b.id);
+};
+
+/* прогрес */
+function renderStats(){
+  const total = Object.values(S.days).reduce((a,b)=>a+b,0);
+  let streak = 0, d = new Date(); if(!S.days[today()]) d.setDate(d.getDate()-1);
+  while(S.days[d.toLocaleDateString('sv')]){ streak++; d.setDate(d.getDate()-1); }
+  const done = S.books.filter(b => b.pos >= b.text.split(' ').length-1).length;
+  $('cards').innerHTML = [['Сьогодні', S.days[today()]||0],['Усього слів', total],['Серія днів', streak],['Дочитано книжок', done]].map(c => `<div class="card"><b>${c[1]}</b><span class="muted">${c[0]}</span></div>`).join('');
+  const days = [...Array(7)].map((_,k) => { const x = new Date(); x.setDate(x.getDate()-6+k); return [x.toLocaleDateString('sv'), x.toLocaleDateString('uk',{weekday:'short'})]; });
+  const max = Math.max(1, ...days.map(x => S.days[x[0]]||0));
+  $('chart').innerHTML = days.map(x => `<div><i style="height:${(S.days[x[0]]||0)/max*88}px"></i>${x[1]}</div>`).join('');
+}
+
+/* магазин */
+const CAT = [
+ {id:'kobzar',t:'Кобзар',a:'Тарас Шевченко',g:'Поезія',cl:[9,10],p:0},
+ {id:'eneida',t:'Енеїда',a:'Іван Котляревський',g:'Поезія',cl:[9],p:0},
+ {id:'zakhar',t:'Захар Беркут',a:'Іван Франко',g:'Історична проза',cl:[8,9],p:0},
+ {id:'lisova',t:'Лісова пісня',a:'Леся Українка',g:'Драма',cl:[10],p:0},
+ {id:'kaidash',t:'Кайдашева сім’я',a:'Іван Нечуй-Левицький',g:'Проза',cl:[10],p:0},
+ {id:'tini',t:'Тіні забутих предків',a:'Михайло Коцюбинський',g:'Проза',cl:[10],p:0},
+ {id:'intermezzo',t:'Intermezzo',a:'Михайло Коцюбинський',g:'Проза',cl:[11],p:0},
+ {id:'p1',t:'Приклад: книжка про бізнес',a:'Автор',g:'Бізнес',cl:[],p:199},
+ {id:'p2',t:'Приклад: сучасна проза',a:'Автор',g:'Проза',cl:[],p:249}
+];
+const SH = {q:'', f:'all', cl:0};
+const FILT = [['all','Усе'],['school','Шкільна програма'],['free','Безкоштовні'],['paid','Платні']];
+function cardHTML(c){
+  const own = S.books.some(b => b.id===c.id);
+  return `<div class="item"><div><b>${c.t}</b><span class="muted">${c.a} · ${c.g}${c.cl.length?' · '+c.cl.join(', ')+' клас':''}</span></div><button data-id="${c.id}"${own?' disabled':''}>${own?'У ваших книжках':c.p?'Купити · '+c.p+' ₴':'Додати'}</button></div>`;
+}
+function renderShop(){
+  $('chips').innerHTML = FILT.map(f => `<button data-f="${f[0]}" aria-pressed="${SH.f===f[0]}">${f[1]}</button>`).join('');
+  const gr = $('grades'); gr.hidden = SH.f!=='school';
+  gr.innerHTML = [0,8,9,10,11].map(n => `<button data-c="${n}" aria-pressed="${SH.cl===n}">${n?n+' клас':'Усі класи'}</button>`).join('');
+  const q = SH.q.toLowerCase();
+  const list = CAT.filter(c => (!q || (c.t+' '+c.a).toLowerCase().includes(q)) && (SH.f==='all' || (SH.f==='school' && c.cl.length && (!SH.cl || c.cl.includes(SH.cl))) || (SH.f==='free' && !c.p) || (SH.f==='paid' && c.p)));
+  const owned = new Set(S.books.filter(b => b.g && (b.pos||0) > 0).map(b => b.g));
+  let rec = CAT.filter(c => !S.books.some(b => b.id===c.id) && owned.has(c.g)).slice(0,3);
+  $('recs').innerHTML = rec.length && !q ? '<h3>Вам може сподобатись</h3>' + rec.map(cardHTML).join('') : '';
+  $('rh').textContent = list.length ? 'Каталог' : 'Нічого не знайдено';
+  $('cat').innerHTML = list.map(cardHTML).join('');
+}
+$('q').oninput = e => { SH.q = e.target.value; renderShop(); };
+$('shop').onclick = e => {
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.f){ SH.f = b.dataset.f; renderShop(); }
+  else if(b.dataset.c !== undefined){ SH.cl = +b.dataset.c; renderShop(); }
+  else if(b.dataset.id){
+    const c = CAT.find(x => x.id===b.dataset.id);
+    if(c.p){ toast('Оплата з’явиться після підключення сервера'); return; }
+    S.books.unshift({id:c.id, title:c.t, g:c.g, text:norm('Це демонстраційна картка каталогу. Щоб читати повний текст, скористайтеся пошуком книжок або завантажте власний EPUB, FB2, TXT чи PDF.'), pos:0});
+    putBody(S.books[0]); save(); toast('Додано до ваших книжок'); renderShop();
+  }
+};
+
+/* Пошук книжок: знайти → передперегляд → завантажити */
+const lnk = (u,t) => `<a class="btn" style="display:inline-block;text-decoration:none" target="_blank" rel="noopener noreferrer" href="${u}">${t}</a>`;
+const esc = s => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function jget(u){ const r = await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
+function searchCard(title, author, source, actions, note=''){
+  return `<div class="item"><div style="min-width:0;flex:1"><b>${esc(title)}</b><span class="muted" style="display:block">${esc(author||'Автор невідомий')} · ${esc(source)}${note?' · '+esc(note):''}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${actions}</div></div>`;
+}
+function downloadTextFile(name, content, mime='text/plain;charset=utf-8'){
+  const url=URL.createObjectURL(new Blob([content],{type:mime}));
+  const a=document.createElement('a');a.href=url;a.download=(name||'book').replace(/[\\/:*?"<>|]/g,'_')+'.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+async function getGutenbergInfo(id){ return jget('https://gutendex.com/books/'+encodeURIComponent(id)+'/'); }
+async function loadGutenbergBook(id, title){
+  const status=$('webres');
+  try{
+    const info=await getGutenbergInfo(id), formats=info.formats||{};
+    const txtUrl=Object.entries(formats).find(([k,v])=>k.startsWith('text/plain')&&v&&!/zip|rdf/i.test(v))?.[1];
+    if(txtUrl){
+      const r=await fetch(txtUrl);if(!r.ok)throw new Error('Не вдалося завантажити текст');
+      const txt=await r.text();
+      if(txt.trim().length>500){const bk=await addParsed(title,txtBlocks(txt));if(bk){openBook(bk.id);toast('Передперегляд відкрито в читалці');return;}}
+    }
+    const epubUrl=formats['application/epub+zip'];
+    if(epubUrl){const r=await fetch(epubUrl);if(!r.ok)throw new Error('Не вдалося завантажити EPUB');const parsed=await epub(await r.arrayBuffer());if(parsed.blocks?.length>5){const bk=await addParsed(parsed.title||title,parsed.blocks);if(bk){openBook(bk.id);toast('Передперегляд відкрито в читалці');return;}}}
+    throw new Error('Повний текст недоступний для вбудованого перегляду');
+  }catch(err){toast('Не вдалося показати передперегляд. Спробуйте завантажити файл або відкрити джерело.');}
+}
+function infoUrl(id){ return 'https://www.gutenberg.org/ebooks/'+encodeURIComponent(id); }
+$('web').onclick = async () => {
+  const q=$('q').value.trim(), box=$('webres'); SH.q=q;
+  if(q.length<2){toast('Введіть назву книжки або автора');return;}
+  box.innerHTML='<p class="muted">Шукаю книжки…</p>';
+  const e=encodeURIComponent(q);
+  const [gu,ws]=await Promise.allSettled([
+    jget('https://gutendex.com/books/?search='+e+'&languages=en,uk'),
+    jget('https://uk.wikisource.org/w/api.php?action=query&list=search&srsearch='+e+'&srnamespace=0&srlimit=10&format=json&origin=*')
+  ]);
+  let h='';
+  if(gu.status==='fulfilled'){
+    const books=gu.value.results||[];
+    h+='<h3>Книжки з файлами · Project Gutenberg</h3><p class="muted">Натисніть «Передперегляд», щоб відкрити текст у читалці, або завантажте EPUB/TXT.</p>';
+    h+=books.length?books.slice(0,12).map(x=>{
+      const author=(x.authors||[]).map(a=>a.name).join(', '), f=x.formats||{};
+      const epubUrl=f['application/epub+zip'];
+      const txtUrl=Object.entries(f).find(([k,v])=>k.startsWith('text/plain')&&v&&!/zip|rdf/i.test(v))?.[1];
+      const actions=`<button data-preview-gut="${x.id}" data-t="${esc(x.title)}">Передперегляд</button>${epubUrl?lnk(epubUrl,'Завантажити EPUB'):''}${txtUrl?lnk(txtUrl,'Завантажити TXT'):''}${lnk(infoUrl(x.id),'Джерело')}`;
+      return searchCard(x.title,author,'Доступна електронна книжка',actions,(x.languages||[]).join(', '));
+    }).join(''):'<p class="muted">За цим запитом книжок із доступними файлами не знайдено.</p>';
+  } else h+='<p class="muted">Каталог Gutenberg тимчасово недоступний.</p>';
+  if(ws.status==='fulfilled'){
+    const results=(ws.value.query?.search||[]).filter(x=>!x.title.includes('/')&&!/^(Категорія:|Шаблон:|Вікіджерела:|Портал:|Автор:|Індекс:)/i.test(x.title));
+    h+='<h3>Українські твори · Вікіджерела</h3><p class="muted">Текст можна переглянути в читалці та завантажити як TXT. Деякі результати можуть бути розділами, а не цілою книжкою.</p>';
+    h+=results.length?results.map(x=>searchCard(x.title,'','Вікіджерела',`<button data-preview-ws="${x.pageid}" data-t="${esc(x.title)}">Передперегляд</button><button data-download-ws="${x.pageid}" data-t="${esc(x.title)}">Завантажити TXT</button>${lnk('https://uk.wikisource.org/?curid='+x.pageid,'Джерело')}`)).join(''):'<p class="muted">За таким запитом творів не знайдено.</p>';
+  } else h+='<p class="muted">Вікіджерела тимчасово недоступні.</p>';
+  box.innerHTML=h||'<p class="muted">Не вдалося підключитися до каталогів. Перевірте інтернет і спробуйте ще раз.</p>';
+};
+$('q').addEventListener('keydown',e=>{if(e.key==='Enter')$('web').click();});
+async function getWikisourceText(pageid){
+  const d=await jget('https://uk.wikisource.org/w/api.php?action=query&prop=extracts&explaintext=1&exsectionformat=plain&format=json&origin=*&pageids='+encodeURIComponent(pageid));
+  return d.query?.pages?.[pageid]?.extract||'';
+}
+$('webres').onclick=async e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.previewGut){b.disabled=true;b.textContent='Завантажую…';await loadGutenbergBook(b.dataset.previewGut,b.dataset.t);b.disabled=false;b.textContent='Передперегляд';return;}
+  if(b.dataset.previewWs||b.dataset.downloadWs){
+    const isDownload=!!b.dataset.downloadWs, id=b.dataset.previewWs||b.dataset.downloadWs, title=b.dataset.t;
+    b.disabled=true;b.textContent='Завантажую…';
+    try{
+      const txt=await getWikisourceText(id);if(!txt.trim())throw new Error('Немає тексту');
+      if(isDownload){downloadTextFile(title,txt);toast('Файл TXT завантажується');}
+      else{const bk=await addParsed(title,txtBlocks(txt));if(!bk)throw new Error('Немає тексту');openBook(bk.id);toast('Передперегляд відкрито в читалці');}
+    }catch(err){toast('Не вдалося отримати текст. Спробуйте інший результат.');}
+    b.disabled=false;b.textContent=isDownload?'Завантажити TXT':'Передперегляд';
+  }
+};
+/* налаштування */
+function applyLook(){
+  document.documentElement.dataset.theme = S.theme;
+  document.documentElement.style.setProperty('--s', S.size/100);
+}
+function renderOpt(){
+  document.querySelectorAll('[data-th]').forEach(b => b.setAttribute('aria-pressed', b.dataset.th===S.theme));
+  $('size').value = S.size; $('pause').checked = S.pause; $('pdfimg').checked = S.pdfImg !== false;
+}
+document.querySelectorAll('[data-th]').forEach(b => b.onclick = () => { S.theme = b.dataset.th; applyLook(); renderOpt(); save(); });
+$('size').oninput = e => { S.size = +e.target.value; applyLook(); save(); };
+$('pause').onchange = e => { S.pause = e.target.checked; save(); };
+$('pdfimg').onchange = e => { S.pdfImg = e.target.checked; save(); };
+$('wipe').onclick = () => { if(confirm('Стерти книжки та статистику?')){ try{ localStorage.removeItem('rsvp2'); }catch(e){} db().then(d => { d.close(); const q = indexedDB.deleteDatabase('reader'); q.onsuccess = q.onerror = q.onblocked = () => location.reload(); }).catch(() => location.reload()); } };
+
+/* старт */
+if(!S.books.length) S.books.push({id:'demo', title:'Як читати швидко', text:norm(SAMPLE), pos:0});
+$('wpm').value = S.wpm; applyLook();
+(async () => {
+  try { navigator.storage.persist(); } catch(e){}
+  await hydrate();
+  S.mode = S.mode || 'rsvp';
+  openBook(S.cur && cur() ? S.cur : S.books[0].id, true);
+  setMode(S.mode); go('read');
+})();
+</script>
+</body>
+</html>
